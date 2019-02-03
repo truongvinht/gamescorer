@@ -49,7 +49,7 @@ router.get('/players', function(req, res, next) {
 });
 
 // CREATE
-router.post('/player', (req, res) => {
+router.post('/players', (req, res) => {
 
     console.log("Player POST");
     //read player information from request
@@ -91,7 +91,7 @@ router.get("/players/:playerId", (req, res) => {
 
 
 //UPDATE
-router.put("/player/:playerId", (req, res) => {
+router.put("/players/:playerId", (req, res) => {
 
     let pid = req.params.playerId;
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
@@ -113,7 +113,7 @@ router.put("/player/:playerId", (req, res) => {
 });
 
 //DELETE
-router.delete("/player", (req, res) => {
+router.delete("/players", (req, res) => {
 
     var pid = req.body.playerId;
 
