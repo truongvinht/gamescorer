@@ -11,6 +11,7 @@ let mysql      = require("mysql");
 const c = require('./app/controllers/configHandler');
 
 var p = require('./app/models/player');
+var g = require('./app/models/guild');
 
 
 // configure app to use bodyParser()
@@ -35,11 +36,109 @@ app.use(function(req, res, next){
 	next();
 });
 
+// GUILD
+// =============================================================================
+
 // READ ALL
-router.get('/players', function(req, res, next) {
-    res.locals.connection.query('SELECT * from PLAYER', function (error, results, fields) {
+router.get('/guilds', function(req, res) {
+    res.locals.connection.query(g.Guild.getAllSQL(), function (error, results, fields) {
         if(error){
-            res.send(JSON.stringify({"status": 400, "error": error, "response": null})); 
+            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+        } else {
+            res.status(200).json({
+                "status": 200,
+                "error": error,
+                response: results
+            });
+        }
+    });
+});
+
+// CREATE
+router.post('/guilds', (req, res) => {
+    // let guild = new g.Guild(req.body.name, req.body.game_id,req.body.main);
+    // res.locals.connection.query(player.getAddPlayerSQL(),  function (err, data) {
+    //     if(err){
+    //         res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+    //     } else {
+    //         res.status(200).json({
+    //             message:"Player added.",
+    //             playerId: data.insertId
+    //         });
+    //     }
+    // });
+});
+
+// READ SINGLE
+router.get("/guilds/:guildId", (req, res) => {
+    // let pid = req.params.playerId;
+    // res.locals.connection.query(p.Player.getPlayerByIdSQL(pid), (err, data)=> {
+    //     if(!err) {
+    //         if(data && data.length > 0) {
+    //             res.status(200).json({
+    //                 message:"Player found.",
+    //                 product: data
+    //             });
+    //         } else {
+    //             res.status(404).json({
+    //                 message: "Player Not found."
+    //             });
+    //         }
+    //     } 
+    // });    
+});
+
+//UPDATE
+router.put("/players/:playerId", (req, res) => {
+
+    // let pid = req.params.playerId;
+    // let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
+
+    // res.locals.connection.query(player.getUpdatePlayerSQL(pid), (err, data)=> {
+    //     if(!err) {
+    //         if(data && data.affectedRows > 0) {
+    //             res.status(200).json({
+    //                 message:`Player updated.`,
+    //                 affectedRows: data.affectedRows
+    //             });
+    //         } else {
+    //             res.status(404).json({
+    //                 message:"Player Not found."
+    //             });
+    //         }
+    //     } 
+    // });   
+});
+
+//DELETE
+router.delete("/players/:playerId", (req, res) => {
+    // var pid = req.body.playerId;
+    // res.locals.connection.query(p.Player.deletePlayerByIdSQL(pid), (err, data)=> {
+    //     if(!err) {
+    //         if(data && data.affectedRows > 0) {
+    //             res.status(200).json({
+    //                 message:`Player deleted with id = ${pid}.`,
+    //                 affectedRows: data.affectedRows
+    //             });
+    //         } else {
+    //             res.status(404).json({
+    //                 message:"Player Not found."
+    //             });
+    //         }
+    //     } 
+    // });   
+});
+
+
+// PLAYER
+// =============================================================================
+
+
+// READ ALL
+router.get('/players', function(req, res) {
+    res.locals.connection.query(p.Player.getAllSQL(), function (error, results, fields) {
+        if(error){
+            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
             //If there is error, we send the error in the error section with 500 status
         } else {
             res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
@@ -50,18 +149,13 @@ router.get('/players', function(req, res, next) {
 
 // CREATE
 router.post('/players', (req, res) => {
-
-    console.log("Player POST");
-    //read player information from request
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
- 
-    res.locals.connection.query(player.getAddPlayerSQL(),  function (err, data) {
-
+    res.locals.connection.query(player.getAddSQL(),  function (err, data) {
         if(err){
-            res.send(JSON.stringify({"status": 400, "error": err, "response": null})); 
+            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
         } else {
             res.status(200).json({
-                message:"Player added.",
+                message:"Player added",
                 playerId: data.insertId
             });
         }
@@ -71,17 +165,15 @@ router.post('/players', (req, res) => {
 // READ SINGLE
 router.get("/players/:playerId", (req, res) => {
     let pid = req.params.playerId;
- 
-    res.locals.connection.query(p.Player.getPlayerByIdSQL(pid), (err, data)=> {
+    res.locals.connection.query(p.Player.getByIdSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
-                
                 res.status(200).json({
-                    message:"Player found.",
+                    message:"Player found",
                     product: data
                 });
             } else {
-                res.status(400).json({
+                res.status(404).json({
                     message: "Player Not found."
                 });
             }
@@ -89,23 +181,22 @@ router.get("/players/:playerId", (req, res) => {
     });    
 });
 
-
 //UPDATE
 router.put("/players/:playerId", (req, res) => {
 
     let pid = req.params.playerId;
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
 
-    res.locals.connection.query(player.getUpdatePlayerSQL(pid), (err, data)=> {
+    res.locals.connection.query(player.getPlayerSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
-                    message:`Player updated.`,
+                    message:`Player updated`,
                     affectedRows: data.affectedRows
                 });
             } else {
-                res.status(400).json({
-                    message:"Player Not found."
+                res.status(404).json({
+                    message:"Player Not found"
                 });
             }
         } 
@@ -113,11 +204,9 @@ router.put("/players/:playerId", (req, res) => {
 });
 
 //DELETE
-router.delete("/players", (req, res) => {
-
+router.delete("/players/:playerId", (req, res) => {
     var pid = req.body.playerId;
-
-    res.locals.connection.query(p.Player.deletePlayerByIdSQL(pid), (err, data)=> {
+    res.locals.connection.query(p.Player.deleteByIdSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
@@ -125,8 +214,8 @@ router.delete("/players", (req, res) => {
                     affectedRows: data.affectedRows
                 });
             } else {
-                res.status(400).json({
-                    message:"Player Not found."
+                res.status(404).json({
+                    message:"Player Not found"
                 });
             }
         } 

@@ -1,23 +1,22 @@
-// player.js
-// Model object for PLAYER
+// guild.js
+// Model object for GUILD
 // ==================
 
 'user strict';
 
-let TABLE = "PLAYER";
+let TABLE = "GUILD";
 
-class Player {
+class Guild {
 
-    constructor(name, game_id, main, id = 0) {
+    constructor(name, tag, id = 0) {
         this.id = id;
 	    this.name = name;
-	    this.game_id = game_id;
-	    this.main = main;
+	    this.tag = tag;
     }
     toString() {
-        return `[${this.id}, ${this.name}, ${this.game_id}, ${this.main}]`;
+        return `[${this.id}, ${this.name}, ${this.tag}]`;
     }
-
+    
     getAddSQL() {
         let sql = `INSERT INTO ${TABLE}(name, game_id, main) VALUES('${this.name}','${this.game_id}',${this.main})`;
         return sql;           
@@ -45,5 +44,5 @@ class Player {
 };
 
 module.exports = {
-    Player: Player
+    Guild: Guild
 };
