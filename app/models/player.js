@@ -1,10 +1,13 @@
 // player.js
-// Model object for player
+// Model object for PLAYER
 // ==================
 
 'user strict';
 
+let TABLE = "PLAYER";
+
 class Player {
+
     constructor(name, game_id, main) {
         this.id = 0;
 	    this.name = name;
@@ -16,22 +19,27 @@ class Player {
     }
 
     getAddPlayerSQL() {
-        let sql = `INSERT INTO PLAYER(name, game_id, main) VALUES('${this.name}','${this.game_id}',${this.main})`;
+        let sql = `INSERT INTO ${TABLE}(name, game_id, main) VALUES('${this.name}','${this.game_id}',${this.main})`;
+        return sql;           
+    }
+
+    getUpdatePlayerSQL(playerId) {
+        let sql = `UPDATE ${TABLE} SET name='${this.name}', game_id='${this.game_id}', main=${this.main} WHERE id = ${playerId}`;
+        return sql;   
+    }
+ 
+    static getPlayerByIdSQL(playerId) {
+        let sql = `SELECT * FROM ${TABLE} WHERE id = ${playerId}`;
         return sql;           
     }
  
-    static getPlayerByIdSQL(prd_id) {
-        let sql = `SELECT * FROM PLAYER WHERE id = ${prd_id}`;
-        return sql;           
-    }
- 
-    static deletePlayerByIdSQL(prd_id) {
-        let sql = `DELETE FROM PLAYER WHERE id = ${prd_id}`;
+    static deletePlayerByIdSQL(playerId) {
+        let sql = `DELETE FROM ${TABLE} WHERE id = ${playerId}`;
         return sql;           
     }
  
     static getAllPlayerSQL() {
-        let sql = `SELECT * FROM PLAYER`;
+        let sql = `SELECT * FROM ${TABLE}`;
         return sql;           
     }
 };
