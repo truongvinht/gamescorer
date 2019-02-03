@@ -1,0 +1,7 @@
+# ignore following folders and files
+.DS_Store
+defaults/settings.json
+
+# NodeJS specific
+node_modules
+package-lock.json

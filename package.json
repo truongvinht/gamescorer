@@ -1,0 +1,15 @@
+{
+  "name": "gamescorer-api",
+  "version": "1.0.0",
+  "description": "Middleware to access player and guild data via RESTful API calls.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Truong Vinh Tran",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "mysql": "^2.16.0"
+  }
+}
