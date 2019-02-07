@@ -23,18 +23,18 @@ class Player {
         return sql;           
     }
 
-    getUpdateSQL(playerId) {
-        let sql = `UPDATE ${TABLE} SET name='${this.name}', game_id='${this.game_id}', main=${this.main} WHERE id = ${playerId}`;
+    getUpdateSQL(objectId) {
+        let sql = `UPDATE ${TABLE} SET name='${this.name}', game_id='${this.game_id}', main=${this.main} WHERE id = ${objectId}`;
         return sql;   
     }
  
-    static getByIdSQL(playerId) {
-        let sql = `SELECT * FROM ${TABLE} WHERE id = ${playerId}`;
+    static getByIdSQL(objectId) {
+        let sql = `SELECT * FROM ${TABLE} WHERE id = ${objectId}`;
         return sql;           
     }
  
-    static deleteByIdSQL(playerId) {
-        let sql = `DELETE FROM ${TABLE} WHERE id = ${playerId}`;
+    static deleteByIdSQL(objectId) {
+        let sql = `DELETE FROM ${TABLE} WHERE id = ${objectId}`;
         return sql;           
     }
  

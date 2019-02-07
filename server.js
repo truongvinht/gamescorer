@@ -10,8 +10,10 @@ let mysql      = require("mysql");
 
 const c = require('./app/controllers/configHandler');
 
-var p = require('./app/models/player');
-var g = require('./app/models/guild');
+const a = require('./app/models/account');
+const p = require('./app/models/player');
+const g = require('./app/models/guild');
+const r = require('./app/models/rawdata');
 
 
 // configure app to use bodyParser()
@@ -36,6 +38,32 @@ app.use(function(req, res, next){
 	next();
 });
 
+
+// ACCOUNT
+// =============================================================================
+
+// CREATE
+router.post('/accounts', (req, res) => {
+
+    let email = req.body.email;
+    let surname = req.body.surname;
+    let firstname = req.body.firstname;
+    let password = req.body.password;
+    let status = req.body.status;
+
+    let account = new a.Account(email, surname, firstname, password, status, null);
+    res.locals.connection.query(account.getAddSQL(),  function (err, data) {
+        if(err){
+            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+        } else {
+            res.status(200).json({
+                message: "Account added.",
+                account_id: data.insertId
+            });
+        }
+    });
+});
+
 // GUILD
 // =============================================================================
 
@@ -56,83 +84,82 @@ router.get('/guilds', function(req, res) {
 
 // CREATE
 router.post('/guilds', (req, res) => {
-    // let guild = new g.Guild(req.body.name, req.body.game_id,req.body.main);
-    // res.locals.connection.query(player.getAddPlayerSQL(),  function (err, data) {
-    //     if(err){
-    //         res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
-    //     } else {
-    //         res.status(200).json({
-    //             message:"Player added.",
-    //             playerId: data.insertId
-    //         });
-    //     }
-    // });
+    let guild = new g.Guild(req.body.name, req.body.tag);
+    res.locals.connection.query(guild.getAddSQL(),  function (err, data) {
+        if(err){
+            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+        } else {
+            res.status(200).json({
+                message: "Guild added.",
+                guild_id: data.insertId
+            });
+        }
+    });
 });
 
 // READ SINGLE
 router.get("/guilds/:guildId", (req, res) => {
-    // let pid = req.params.playerId;
-    // res.locals.connection.query(p.Player.getPlayerByIdSQL(pid), (err, data)=> {
-    //     if(!err) {
-    //         if(data && data.length > 0) {
-    //             res.status(200).json({
-    //                 message:"Player found.",
-    //                 product: data
-    //             });
-    //         } else {
-    //             res.status(404).json({
-    //                 message: "Player Not found."
-    //             });
-    //         }
-    //     } 
-    // });    
+    let gid = req.params.guildId;
+    res.locals.connection.query(g.Guild.getByIdSQL(gid), (err, data)=> {
+        if(!err) {
+            if(data && data.length > 0) {
+                res.status(200).json({
+                    message:"Guild found.",
+                    guild: data
+                });
+            } else {
+                res.status(404).json({
+                    message: "Guild Not found."
+                });
+            }
+        } 
+    });    
 });
 
 //UPDATE
-router.put("/players/:playerId", (req, res) => {
+router.put("/guilds/:guildId", (req, res) => {
 
-    // let pid = req.params.playerId;
-    // let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
+    let gid = req.params.guildId;
+    let guild = new g.Guild(req.body.name, req.body.tag);
 
-    // res.locals.connection.query(player.getUpdatePlayerSQL(pid), (err, data)=> {
-    //     if(!err) {
-    //         if(data && data.affectedRows > 0) {
-    //             res.status(200).json({
-    //                 message:`Player updated.`,
-    //                 affectedRows: data.affectedRows
-    //             });
-    //         } else {
-    //             res.status(404).json({
-    //                 message:"Player Not found."
-    //             });
-    //         }
-    //     } 
-    // });   
+    res.locals.connection.query(guild.getUpdateSQL(gid), (err, data)=> {
+        if(!err) {
+            if(data && data.affectedRows > 0) {
+                res.status(200).json({
+                    message:`Guild updated.`,
+                    affectedRows: data.affectedRows
+                });
+            } else {
+                res.status(404).json({
+                    message:"Guild Not found."
+                });
+            }
+        } 
+    });   
 });
 
 //DELETE
-router.delete("/players/:playerId", (req, res) => {
-    // var pid = req.body.playerId;
-    // res.locals.connection.query(p.Player.deletePlayerByIdSQL(pid), (err, data)=> {
-    //     if(!err) {
-    //         if(data && data.affectedRows > 0) {
-    //             res.status(200).json({
-    //                 message:`Player deleted with id = ${pid}.`,
-    //                 affectedRows: data.affectedRows
-    //             });
-    //         } else {
-    //             res.status(404).json({
-    //                 message:"Player Not found."
-    //             });
-    //         }
-    //     } 
-    // });   
+router.delete("/guilds/:guildId", (req, res) => {
+    var gid = req.body.guildId;
+    res.locals.connection.query(g.Guild.deleteByIdSQL(gid), (err, data)=> {
+        if(!err) {
+            if(data && data.affectedRows > 0) {
+                res.status(200).json({
+                    message:`Guild deleted with id = ${gid}.`,
+                    affectedRows: data.affectedRows
+                });
+            } else {
+                res.status(404).json({
+                    message:"Guild Not found."
+                });
+            }
+        } 
+    });   
 });
 
 
 // PLAYER
 // =============================================================================
-
 
 // READ ALL
 router.get('/players', function(req, res) {
@@ -170,7 +197,7 @@ router.get("/players/:playerId", (req, res) => {
             if(data && data.length > 0) {
                 res.status(200).json({
                     message:"Player found",
-                    product: data
+                    player: data
                 });
             } else {
                 res.status(404).json({
@@ -187,7 +214,7 @@ router.put("/players/:playerId", (req, res) => {
     let pid = req.params.playerId;
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
 
-    res.locals.connection.query(player.getPlayerSQL(pid), (err, data)=> {
+    res.locals.connection.query(player.getUpdateSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
@@ -220,6 +247,57 @@ router.delete("/players/:playerId", (req, res) => {
             }
         } 
     });   
+});
+
+
+// RAWDATA
+// =============================================================================
+
+// READ ALL DATA
+router.get('/rawdatas', function(req, res) {
+    res.locals.connection.query(r.Rawdata.getAllForPlayerInGuildSQL(req.body.guildId,req.body.playerId), function (error, results, fields) {
+        if(error){
+            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            //If there is error, we send the error in the error section with 500 status
+        } else {
+            res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
+            //If there is no error, all is good and response is 200OK.
+        }
+    });
+});
+
+// CREATE
+router.post('/rawdatas', (req, res) => {
+    let rawdata = new r.Rawdata(req.body.date, req.body.guildId, req.body.playerId, req.body.value);
+    res.locals.connection.query(rawdata.getAddSQL(),  function (err, data) {
+        if(err){
+            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+        } else {
+            res.status(200).json({
+                message: "Rawdata added.",
+                rawdata_id: data.insertId
+            });
+        }
+    });
+});
+
+// READ SINGLE
+router.get("/rawdatas/:rawdataId", (req, res) => {
+    let rid = req.params.rawdataId;
+    res.locals.connection.query(r.Rawdata.getByIdSQL(rid), (err, data)=> {
+        if(!err) {
+            if(data && data.length > 0) {
+                res.status(200).json({
+                    message:"Rawdata found",
+                    rawdata: data
+                });
+            } else {
+                res.status(404).json({
+                    message: "Rawdata Not found."
+                });
+            }
+        } 
+    }); 
 });
 
 // more routes for our API will happen here
