@@ -29,6 +29,7 @@ var router = express.Router();              // get an instance of the express Ro
 
 // initialize db connection
 app.use(function(req, res, next){
+    res.setHeader('Content-Type', 'application/json');
 	res.locals.connection = mysql.createConnection({
 		host     : c.dbSettings().host,
 		user     : c.dbSettings().user,
@@ -54,7 +55,14 @@ router.post('/accounts', (req, res) => {
     let account = new a.Account(email, surname, firstname, password, status, null);
     res.locals.connection.query(account.getAddSQL(),  function (err, data) {
         if(err){
-            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+            // email already exist
+            if (err.code == "ER_DUP_ENTRY") {
+                // forbidden
+                res.send(JSON.stringify({"status": 403, "error": err, "response": null}));  
+            } else {
+                // all other errors
+                res.send(JSON.stringify({"status": 405, "error": err, "response": null})); 
+            }
         } else {
             res.status(200).json({
                 message: "Account added.",

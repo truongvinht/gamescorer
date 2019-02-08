@@ -22,7 +22,7 @@ class Account {
     }
     
     getAddSQL() {
-        let sql = `INSERT INTO ${TABLE}(email, surname, firstname, password, status) VALUES('${this.email}','${this.surname}','${this.firstname}','${this.password}','${this.status}'`;
+        let sql = `INSERT INTO ${TABLE}(email, surname, firstname, password, status) VALUES('${this.email}','${this.surname}','${this.firstname}','${this.password}',${this.status})`;
         return sql;           
     }
 
@@ -38,5 +38,5 @@ class Account {
 };
 
 module.exports = {
-    Guild: Guild
+    Account: Account
 };
