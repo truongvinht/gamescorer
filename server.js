@@ -13,6 +13,7 @@ const c = require('./app/controllers/configHandler');
 const a = require('./app/models/account');
 const p = require('./app/models/player');
 const g = require('./app/models/guild');
+const gp = require('./app/models/guildPermission');
 const r = require('./app/models/rawdata');
 
 
@@ -46,13 +47,17 @@ app.use(function(req, res, next){
 // CREATE
 router.post('/accounts', (req, res) => {
 
+    //input
     let email = req.body.email;
     let surname = req.body.surname;
     let firstname = req.body.firstname;
     let password = req.body.password;
-    let status = req.body.status;
+    let birthdate = req.body.birthdate;
 
-    let account = new a.Account(email, surname, firstname, password, status, null);
+    //optional
+    let verified = req.body.verified;
+
+    let account = new a.Account(email, surname, firstname, password, birthdate,verified);
     res.locals.connection.query(account.getAddSQL(),  function (err, data) {
         if(err){
             // email already exist
@@ -72,37 +77,121 @@ router.post('/accounts', (req, res) => {
     });
 });
 
+// READ SINGLE
+router.get("/accounts/:accountId", (req, res) => {
+    let aid = req.params.accountId;
+    res.locals.connection.query(a.Account.getByIdSQL(aid), (err, data)=> {
+        if(!err) {
+            if(data && data.length > 0) {
+                res.status(200).json({
+                    message:"Account found.",
+                    account: data
+                });
+            } else {
+                res.status(404).json({
+                    message: "Account Not found."
+                });
+            }
+        } 
+    });    
+});
+
+//UPDATE
+router.put("/accounts/:accountId", (req, res) => {
+
+    let aid = req.params.accountId;
+
+    let email = req.body.email;
+    let surname = req.body.surname;
+    let firstname = req.body.firstname;
+    let password = req.body.password;
+    let birthdate = req.body.birthdate;
+    let status = req.body.status;
+
+    let account = new a.Account(email, surname, firstname, password, birthdate, status, null);
+
+    res.locals.connection.query(account.getUpdateSQL(aid), (err, data)=> {
+        if(!err) {
+            if(data && data.affectedRows > 0) {
+                res.status(200).json({
+                    message:`Guild updated.`,
+                    affectedRows: data.affectedRows
+                });
+            } else {
+                res.status(404).json({
+                    message:"Guild Not found."
+                });
+            }
+        } 
+    });   
+});
+
 // GUILD
 // =============================================================================
 
 // READ ALL
 router.get('/guilds', function(req, res) {
-    res.locals.connection.query(g.Guild.getAllSQL(), function (error, results, fields) {
-        if(error){
-            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
-        } else {
-            res.status(200).json({
-                "status": 200,
-                "error": error,
-                response: results
-            });
-        }
-    });
+    let accountId = req.body.accountId;
+
+    if (accountId == undefined) {
+        // get all guilds
+        res.locals.connection.query(g.Guild.getAllSQL(), function (error, results, fields) {
+            if(error){
+                res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            } else {
+                res.status(200).json({
+                    "status": 200,
+                    "error": error,
+                    response: results
+                });
+            }
+        });
+    } else {
+        // get all guilds for current account
+        res.locals.connection.query(gp.GuildPermission.getAllForAccountSQL(accountId), function (error, results, fields) {
+            if(error){
+                res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            } else {
+                res.status(200).json({
+                    "status": 200,
+                    "error": error,
+                    response: results
+                });
+            }
+        });
+    }
 });
 
-// CREATE
+// CREATE GUILD AND LINK PERMISSION
 router.post('/guilds', (req, res) => {
-    let guild = new g.Guild(req.body.name, req.body.tag);
-    res.locals.connection.query(guild.getAddSQL(),  function (err, data) {
-        if(err){
-            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
-        } else {
-            res.status(200).json({
-                message: "Guild added.",
-                guild_id: data.insertId
-            });
-        }
-    });
+    let accountId = req.body.accountId;
+
+    if (accountId==null) {
+        // prevent create guilds without account associations
+        res.send(JSON.stringify({"status": 403, "error": "accountId missing"})); 
+    } else {
+        let guild = new g.Guild(req.body.name, req.body.tag);
+        res.locals.connection.query(guild.getAddSQL(),  function (err, data) {
+            if(err){
+                res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+            } else {
+
+                // trigger creating guild permission after creating guild
+                let guildPermission = new gp.GuildPermission(accountId, data.insertId, true);
+                res.locals.connection.query(guildPermission.getAddSQL(),  function (err, data) {
+                    if(err){
+                        res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+                    } else {
+                        res.status(200).json({
+                            message: "Guild added.",
+                            guildpermission:guildPermission,
+                            guildPermission_id: data.insertId
+                        });
+                    }
+                });
+            }
+        });
+    }
 });
 
 // READ SINGLE
@@ -135,25 +224,6 @@ router.put("/guilds/:guildId", (req, res) => {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
                     message:`Guild updated.`,
-                    affectedRows: data.affectedRows
-                });
-            } else {
-                res.status(404).json({
-                    message:"Guild Not found."
-                });
-            }
-        } 
-    });   
-});
-
-//DELETE
-router.delete("/guilds/:guildId", (req, res) => {
-    var gid = req.body.guildId;
-    res.locals.connection.query(g.Guild.deleteByIdSQL(gid), (err, data)=> {
-        if(!err) {
-            if(data && data.affectedRows > 0) {
-                res.status(200).json({
-                    message:`Guild deleted with id = ${gid}.`,
                     affectedRows: data.affectedRows
                 });
             } else {

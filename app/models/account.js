@@ -4,10 +4,6 @@
 
 'user strict';
 
-/**
- * Table Name
- * @readonly
- */
 let TABLE = "ACCOUNT";
 
 /**
@@ -27,7 +23,7 @@ class Account {
      * @param {date}   birthdate    birthdate of user
      * @param {number} verified     account is verified (by email)
      */
-    constructor(email, surname, firstname, password, birthdate, verified) {
+    constructor(email, surname, firstname, password, birthdate, verified = 0) {
 
         // varchar 255 | Default: None
         this.email = email;
@@ -61,7 +57,11 @@ class Account {
      * @return {string} query to create (Account)
      */
     getAddSQL() {
-        let sql = `INSERT INTO ${TABLE}(email, surname, firstname, password, birthdate, verified) VALUES('${this.email}','${this.surname}','${this.firstname}','${this.password}',${this.birthdate},${this.verified})`;
+
+        let keys = `email, surname, firstname, password, birthdate, verified`;
+        let values = `'${this.email}','${this.surname}','${this.firstname}','${this.password}',${this.birthdate},${this.verified}`;
+
+        let sql = `INSERT INTO ${TABLE}(${keys}) VALUES(${values})`;
         return sql;           
     }
 
@@ -73,7 +73,14 @@ class Account {
      */
     getUpdateSQL(objectId) {
         
-        let sql = `UPDATE ${TABLE} SET email='${this.email}', surname='${this.surname}', firstname='${this.firstname}', password='${this.password}', birthdate=${this.birthdate}, player_id=${this.playerId} WHERE id = ${objectId}`;
+        let param1 = `email='${this.email}'`;
+        let param2 = `surname='${this.surname}'`;
+        let param3 = `firstname='${this.firstname}'`;
+        let param4 = `password='${this.password}'`;
+        let param5 = `birthdate=${this.birthdate}`;
+        let param6 = `verified=${this.verified}`;
+
+        let sql = `UPDATE ${TABLE} SET ${param1}, ${param2}, ${param3}, ${param4}, ${param5}, ${param6} WHERE id = ${objectId}`;
         return sql;   
     }
     
