@@ -92,7 +92,7 @@ class Account {
      */
     static getByIdSQL(objectId) {
         let sql = `SELECT * FROM ${TABLE} WHERE id = ${objectId}`;
-        return sql;           
+        return sql;
     }
 };
 

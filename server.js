@@ -134,18 +134,8 @@ router.get('/guilds', function(req, res) {
     let accountId = req.body.accountId;
 
     if (accountId == undefined) {
-        // get all guilds
-        res.locals.connection.query(g.Guild.getAllSQL(), function (error, results, fields) {
-            if(error){
-                res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
-            } else {
-                res.status(200).json({
-                    "status": 200,
-                    "error": error,
-                    response: results
-                });
-            }
-        });
+        // get all guilds is not permitted
+        res.send(JSON.stringify({"status": 403, "error": "accountId missing", "response": null})); 
     } else {
         // get all guilds for current account
         res.locals.connection.query(gp.GuildPermission.getAllForAccountSQL(accountId), function (error, results, fields) {
@@ -308,24 +298,11 @@ router.put("/players/:playerId", (req, res) => {
     });   
 });
 
-//DELETE
-router.delete("/players/:playerId", (req, res) => {
-    var pid = req.body.playerId;
-    res.locals.connection.query(p.Player.deleteByIdSQL(pid), (err, data)=> {
-        if(!err) {
-            if(data && data.affectedRows > 0) {
-                res.status(200).json({
-                    message:`Player deleted with id = ${pid}.`,
-                    affectedRows: data.affectedRows
-                });
-            } else {
-                res.status(404).json({
-                    message:"Player Not found"
-                });
-            }
-        } 
-    });   
-});
+
+// GUILDLIST
+// =============================================================================
+
+
 
 
 // RAWDATA
