@@ -176,7 +176,8 @@ router.put("/accounts/:accountId", (req, res) => {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
-                    response:data.affectedRows
+                    //data.affectedRows
+                    response: data
                 });
             } else {
                 res.send(JSON.stringify({"status": 404, "error": err, "response": "AccountNotFound"}));
@@ -187,13 +188,13 @@ router.put("/accounts/:accountId", (req, res) => {
     });   
 });
 
+
 // GUILD
 // =============================================================================
 
-
 /**
  * @api {get} /guilds Read Guilds
- * @apiDescription Get guilds which are available for account
+ * @apiDescription Get all guilds for an account
  * @apiName ReadGuilds
  * @apiVersion 1.0.0
  * @apiGroup Guild
@@ -347,8 +348,7 @@ router.put("/guilds/:guildId", (req, res) => {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
-                    message:`Guild updated.`,
-                    affectedRows: data.affectedRows
+                    response: data
                 });
             } else {
                 res.send(JSON.stringify({"status": 404, "error": error, "response": "GuildNotFound"})); 
@@ -363,29 +363,59 @@ router.put("/guilds/:guildId", (req, res) => {
 // PLAYER
 // =============================================================================
 
-// READ ALL
+/**
+ * @api {get} /players Read Players
+ * @apiDescription Get all players
+ * @apiName ReadPlayers
+ * @apiVersion 1.0.0
+ * @apiGroup Player
+ * 
+ * @apiSuccess {Object[]}   response    List of all players
+ * 
+ * @apiError CantGetPlayers Could not get any players
+ */
 router.get('/players', function(req, res) {
     res.locals.connection.query(p.Player.getAllSQL(), function (error, results, fields) {
         if(error){
-            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            res.send(JSON.stringify({"status": 400, "error": error, "response": "CantGetPlayers"})); 
             //If there is error, we send the error in the error section with 500 status
         } else {
-            res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
-            //If there is no error, all is good and response is 200OK.
+            //If there is no error, all is good and response is 200.
+            res.status(200).json({
+                response: results
+            });
         }
     });
 });
 
-// CREATE
+/**
+ * @api {post} /players Create Player
+ * @apiDescription Create a new player
+ * @apiName CreatePlayer
+ * @apiVersion 1.0.0
+ * @apiGroup Player
+ * 
+ * @apiHeader {String}  name        Player name
+ * @apiHeader {String}  game_id     Player ingame unique identifier
+ * @apiHeader {Boolean} main        Player account is main account
+ * 
+ * @apiSuccess {String} response    Created Player id
+ * 
+ * @apiError PlayerAlreadyExist    Player could not be created, because name already exist
+ * @apiError FailedCreating         Player could not be created
+ */
 router.post('/players', (req, res) => {
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
     res.locals.connection.query(player.getAddSQL(),  function (err, data) {
         if(err){
-            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+            if (err.code == "ER_DUP_ENTRY") {
+                res.send(JSON.stringify({"status": 403, "error": err, "response": "PlayerAlreadyExist"})); 
+            } else {
+                res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedCreating"})); 
+            }
         } else {
             res.status(200).json({
-                message:"Player added",
-                playerId: data.insertId
+                response: data.insertId
             });
         }
     });
