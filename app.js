@@ -297,10 +297,10 @@ router.post('/guilds', (req, res) => {
  * 
  * @apiParam {Number}       guildId         Guild unique id, 
  * 
- * @apiSuccess {Object}     guild           Guild object
- * @apiSuccess {Number}     guild.id        Guild unique identifier
- * @apiSuccess {String}     guild.name      Guild name
- * @apiSuccess {String}     guild.tag       Guild tag
+ * @apiSuccess {Object}     response        Guild object
+ * @apiSuccess {Number}     response.id     Guild unique identifier
+ * @apiSuccess {String}     response.name   Guild name
+ * @apiSuccess {String}     response.tag    Guild tag
  * 
  * @apiError GuildNotFound No match found for given <code>guildId<code>
  */
@@ -399,9 +399,9 @@ router.get('/players', function(req, res) {
  * @apiHeader {String}  game_id     Player ingame unique identifier
  * @apiHeader {Boolean} main        Player account is main account
  * 
- * @apiSuccess {String} response    Created Player id
+ * @apiSuccess {Number} response    Created Player id
  * 
- * @apiError PlayerAlreadyExist    Player could not be created, because name already exist
+ * @apiError PlayerAlreadyExist     Player could not be created, because name already exist
  * @apiError FailedCreating         Player could not be created
  */
 router.post('/players', (req, res) => {
@@ -421,20 +421,34 @@ router.post('/players', (req, res) => {
     });
 });
 
-// READ SINGLE
+
+/**
+ * @api {post} /players:playerId Read Player
+ * @apiDescription Read exsting player data
+ * @apiName ReadPlayer
+ * @apiVersion 1.0.0
+ * @apiGroup Player
+ * 
+ * @apiParam {Number}       playerId           Player unique id
+ * 
+ * @apiSuccess {Object}     response           Player object
+ * @apiSuccess {Number}     response.id        Player unique identifier
+ * @apiSuccess {String}     response.name      Player name
+ * @apiSuccess {String}     response.game_id   Player ingame unique identifier
+ * @apiSuccess {Boolean}    response.main      Player account is main account
+ * 
+ * @apiError PlayerNotFound     No match found for given <code>playerId</code>
+ */
 router.get("/players/:playerId", (req, res) => {
     let pid = req.params.playerId;
     res.locals.connection.query(p.Player.getByIdSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
-                    message:"Player found",
                     player: data
                 });
             } else {
-                res.status(404).json({
-                    message: "Player Not found."
-                });
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
             }
         } 
     });    
