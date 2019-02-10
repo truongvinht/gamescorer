@@ -47,22 +47,22 @@ app.use(function(req, res, next){
 
 /**
  * @api {post} /accounts Create Account
+ * @apiDescription Create a new account
  * @apiName CreateAccount
  * @apiVersion 1.0.0
  * @apiGroup Account
  * 
- * @apiHeader {String} email email address for authentication
- * @apiHeader {String} surname user surename
- * @apiHeader {String} firstname user firstname
- * @apiHeader {String} password user password
- * @apiHeader {Object} birthdate user birthdate
- * @apiHeader {Number} verified account verified status
+ * @apiHeader {String}  email       Email address for authentication
+ * @apiHeader {String}  surname     Account surename
+ * @apiHeader {String}  firstname   Account firstname
+ * @apiHeader {String}  password    Account password
+ * @apiHeader {Date}    birthdate   Account birthdate
+ * @apiHeader {Boolean} verified    Account verified status
  * 
- * @apiSuccess {String} message Request status
- * @apiSuccess {String} account_id Created Account id 
+ * @apiSuccess {String} response    Created Account id
  * 
- * @apiError AccountAlreadyExist Account could not be created, because email already exist
- * @apiError FailedCreating Account could not be created
+ * @apiError AccountAlreadyExist    Account could not be created, because email already exist
+ * @apiError FailedCreating         Account could not be created
  */
 router.post('/accounts', (req, res) => {
 
@@ -89,9 +89,7 @@ router.post('/accounts', (req, res) => {
             }
         } else {
             res.status(200).json({
-                response: "Account added.",
-                error: null,
-                account_id: data.insertId
+                response: data.insertId
             });
         }
     });
@@ -99,16 +97,23 @@ router.post('/accounts', (req, res) => {
 
 /**
  * @api {get} /accounts/:accountId Read Account
+ * @apiDescription Read existing account
  * @apiName ReadAccount
  * @apiVersion 1.0.0
  * @apiGroup Account
  * 
- * @apiParam {Number} accountId account unique id
+ * @apiParam {Number} accountId     Account unique id
  * 
- * @apiSuccess {String} message Request status
- * @apiSuccess {Object} account matching user account
+ * @apiSuccess {Object}     response            Requested account object
+ * @apiSuccess {Number}     response.id         Account unique identifier
+ * @apiSuccess {String}     response.email      Account email
+ * @apiSuccess {String}     response.surname    Account surname
+ * @apiSuccess {String}     response.firstname  Account firstname
+ * @apiSuccess {String}     response.password   Account password
+ * @apiSuccess {Date}       response.birthdate  Account birthdate
+ * @apiSuccess {Boolean}    response.verified   Account verified status
  * 
- * @apiError AccountNotFound No match found for given account id
+ * @apiError AccountNotFound        No match found for given account id
  */
 router.get("/accounts/:accountId", (req, res) => {
     let aid = req.params.accountId;
@@ -116,36 +121,41 @@ router.get("/accounts/:accountId", (req, res) => {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
-                    response:"Account found.",
-                    account: data
+                    response: data
                 });
             } else {
-                res.status(404).json({
-                    response: "Account Not found.",
-                    error: err
-                });
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "AccountNotFound"}));
             }
-        } 
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "AccountNotFound"}));
+        }
     });    
 });
 
 /**
  * @api {put} /accounts/:accountId Update Account
+ * @apiDescription Update existing account data
  * @apiName UpdateAccount
  * @apiVersion 1.0.0
  * @apiGroup Account
  * 
- * @apiHeader {String} email email address for authentication
- * @apiHeader {String} surname user surename
- * @apiHeader {String} firstname user firstname
- * @apiHeader {String} password user password
- * @apiHeader {Object} birthdate user birthdate
- * @apiHeader {Number} verified account verified status
+ * @apiHeader {String}  email       Email address for authentication
+ * @apiHeader {String}  surname     Account surename
+ * @apiHeader {String}  firstname   Account firstname
+ * @apiHeader {String}  password    Account password
+ * @apiHeader {Date}    birthdate   Account birthdate
+ * @apiHeader {Boolean} verified    Account verified status
  * 
- * @apiParam {Number} accountId account unique id
+ * @apiParam {Number}   accountId   Account unique id
  * 
- * @apiSuccess {String} message Request status
- * @apiSuccess {Object} updated user account
+ * @apiSuccess {Object}     response            Updated user account
+ * @apiSuccess {Number}     response.id         Account unique identifier
+ * @apiSuccess {String}     response.email      Account email
+ * @apiSuccess {String}     response.surname    Account surname
+ * @apiSuccess {String}     response.firstname  Account firstname
+ * @apiSuccess {String}     response.password   Account password
+ * @apiSuccess {Date}       response.birthdate  Account birthdate
+ * @apiSuccess {Boolean}    response.verified   Account verified status
  * 
  * @apiError AccountNotFound No match found for given account id
  */
@@ -166,38 +176,48 @@ router.put("/accounts/:accountId", (req, res) => {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
-                    message:`Account updated.`,
-                    account: data.affectedRows
+                    response:data.affectedRows
                 });
             } else {
-                res.status(404).json({
-                    message:"Account Not found.",
-                    error: err
-                });
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "AccountNotFound"}));
             }
-        } 
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "AccountNotFound"}));
+        }
     });   
 });
 
 // GUILD
 // =============================================================================
 
-// READ ALL
+
+/**
+ * @api {get} /guilds Read Guilds
+ * @apiDescription Get guilds which are available for account
+ * @apiName ReadGuilds
+ * @apiVersion 1.0.0
+ * @apiGroup Guild
+ * 
+ * @apiHeader {Number} accountId account unique id, 
+ * 
+ * @apiSuccess {Object[]}   response    List of matching guilds
+ * 
+ * @apiError AccoundIdMissing Account id is mandatory for request
+ * @apiError AccountNotFound No match found for given account id
+ */
 router.get('/guilds', function(req, res) {
     let accountId = req.body.accountId;
 
     if (accountId == undefined) {
         // get all guilds is not permitted
-        res.send(JSON.stringify({"status": 403, "error": "accountId missing", "response": null})); 
+        res.send(JSON.stringify({"status": 403, "error": "accountId missing", "response": "AccoundIdMissing"})); 
     } else {
         // get all guilds for current account
         res.locals.connection.query(gp.GuildPermission.getAllForAccountSQL(accountId), function (error, results, fields) {
             if(error){
-                res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+                res.send(JSON.stringify({"status": 404, "error": error, "response": "AccountNotFound"})); 
             } else {
                 res.status(200).json({
-                    "status": 200,
-                    "error": error,
                     response: results
                 });
             }
@@ -205,30 +225,60 @@ router.get('/guilds', function(req, res) {
     }
 });
 
-// CREATE GUILD AND LINK PERMISSION
+
+/**
+ * @api {post} /guilds Create Guild
+ * @apiDescription Create a guild with access right for editing
+ * @apiName CreateGuild
+ * @apiVersion 1.0.0
+ * @apiGroup Guild
+ * 
+ * @apiHeader {String}      name        Guild name
+ * @apiHeader {String}      tag         Guild tag
+ * @apiHeader {Number}      accountId   Account unique id, 
+ * 
+ * @apiSuccess {Object}     guild                       Guild object
+ * @apiSuccess {Number}     guild.id                    Guild unique identifier
+ * @apiSuccess {String}     guild.name                  Guild name
+ * @apiSuccess {String}     guild.tag                   Guild tag
+ * @apiSuccess {Object}     guildPermission             Permission for guild object
+ * @apiSuccess {Number}     guildPermission.id          GuildPermission unique identifier
+ * @apiSuccess {Date}       guildPermission.created_at  GuildPermission creation date
+ * @apiSuccess {Number}     guildPermission.guild_id    Foreign key to guild
+ * @apiSuccess {Number}     guildPermission.account_id  Foreign key to account
+ * @apiSuccess {Boolean}    guildPermission.owner       Flag for ownership of guild
+ * 
+ * @apiError AccoundIdMissing Account id is mandatory for request
+ * @apiError CreateGuildFailed Guild creation failed
+ * @apiError CreatePermissionFailed Permission creation failed
+ */
 router.post('/guilds', (req, res) => {
     let accountId = req.body.accountId;
 
     if (accountId==null) {
         // prevent create guilds without account associations
-        res.send(JSON.stringify({"status": 403, "error": "accountId missing"})); 
+        res.send(JSON.stringify({"status": 403, "error": "accountId missing", "response": "AccoundIdMissing"})); 
     } else {
-        let guild = new g.Guild(req.body.name, req.body.tag);
-        res.locals.connection.query(guild.getAddSQL(),  function (err, data) {
+
+        let name = req.body.name;
+        let tag = req.body.tag;
+
+        let guild = new g.Guild(name, tag);
+
+        res.locals.connection.query(guild.getAddSQL(),  function (guildErr, guildData) {
             if(err){
-                res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+                res.send(JSON.stringify({"status": 400, "error": guildErr, "response": "CreateGuildFailed"})); 
             } else {
 
                 // trigger creating guild permission after creating guild
                 let guildPermission = new gp.GuildPermission(accountId, data.insertId, true);
                 res.locals.connection.query(guildPermission.getAddSQL(),  function (err, data) {
                     if(err){
-                        res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
+                        res.send(JSON.stringify({"status": 400, "error": err, "response": "CreatePermissionFailed"})); 
                     } else {
                         res.status(200).json({
-                            message: "Guild added.",
-                            guildpermission:guildPermission,
-                            guildPermission_id: data.insertId
+                            guild: guildData,
+                            guildPermission:guildPermission
                         });
                     }
                 });
@@ -237,20 +287,32 @@ router.post('/guilds', (req, res) => {
     }
 });
 
-// READ SINGLE
+/**
+ * @api {get} /guilds/:guildId Read Guild
+ * @apiDescription Read single guild data 
+ * @apiName ReadGuild
+ * @apiVersion 1.0.0
+ * @apiGroup Guild
+ * 
+ * @apiParam {Number}       guildId         Guild unique id, 
+ * 
+ * @apiSuccess {Object}     guild           Guild object
+ * @apiSuccess {Number}     guild.id        Guild unique identifier
+ * @apiSuccess {String}     guild.name      Guild name
+ * @apiSuccess {String}     guild.tag       Guild tag
+ * 
+ * @apiError GuildNotFound No match found for given guild id
+ */
 router.get("/guilds/:guildId", (req, res) => {
     let gid = req.params.guildId;
     res.locals.connection.query(g.Guild.getByIdSQL(gid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
-                    message:"Guild found.",
-                    guild: data
+                    response: data
                 });
             } else {
-                res.status(404).json({
-                    message: "Guild Not found."
-                });
+                res.send(JSON.stringify({"status": 404, "error": error, "response": "GuildNotFound"})); 
             }
         } 
     });    
