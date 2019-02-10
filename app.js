@@ -1,4 +1,4 @@
-// server.js
+// app.js
 // Main file to launch server application
 // ==================
 
@@ -8,14 +8,14 @@ var app        = express();                 // define our app using express
 var bodyParser = require('body-parser');
 let mysql      = require("mysql");
 
-const c = require('./app/controllers/configHandler');
+const c = require('./services/configHandler');
 
-const a = require('./app/models/account');
-const p = require('./app/models/player');
-const g = require('./app/models/guild');
-const gp = require('./app/models/guildPermission');
-const gl = require('./app/models/guildList');
-const r = require('./app/models/rawdata');
+const a = require('./api/models/account');
+const p = require('./api/models/player');
+const g = require('./api/models/guild');
+const gp = require('./api/models/guildPermission');
+const gl = require('./api/models/guildList');
+const r = require('./api/models/rawdata');
 
 
 // configure app to use bodyParser()
