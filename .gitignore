@@ -1,6 +1,7 @@
 # ignore following folders and files
 .DS_Store
 defaults/settings.json
+.vscode
 
 # NodeJS specific
 node_modules

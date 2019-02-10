@@ -14,6 +14,7 @@ const a = require('./app/models/account');
 const p = require('./app/models/player');
 const g = require('./app/models/guild');
 const gp = require('./app/models/guildPermission');
+const gl = require('./app/models/guildList');
 const r = require('./app/models/rawdata');
 
 
@@ -302,7 +303,21 @@ router.put("/players/:playerId", (req, res) => {
 // GUILDLIST
 // =============================================================================
 
+// READ ALL DATA
+router.get('/guilds/:guildId/guildlist', function(req, res) {
 
+    let gid = req.params.guildId;
+
+    res.locals.connection.query(gl.GuildList.getAllForPlayerInGuildSQL(req.body.guildId,req.body.playerId), function (error, results, fields) {
+        if(error){
+            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            //If there is error, we send the error in the error section with 500 status
+        } else {
+            res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
+            //If there is no error, all is good and response is 200OK.
+        }
+    });
+});
 
 
 // RAWDATA
