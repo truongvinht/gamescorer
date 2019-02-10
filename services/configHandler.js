@@ -4,10 +4,10 @@
 
 //load settings => auto fallback to example for heroku
 var botSettings = {};
-const exampleSettings = require("../../templates/default_settings.json");
+const exampleSettings = require("../templates/default_settings.json");
 
 try {
-    botSettings = require("../../defaults/settings.json");
+    botSettings = require("../defaults/settings.json");
 } catch (e) {
     if (e.code !== 'MODULE_NOT_FOUND') {
         throw e;
