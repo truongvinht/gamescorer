@@ -10,7 +10,7 @@ Middleware RESTful API for managing game data (e.g. vainglory). Inital idea is t
 - apidoc for documentation (optional)
 
 #### Configuration
-Copy templates/deafult_settings.json to defaults/settings.json and fill in your database connection. 
+Copy templates/default_settings.json to defaults/settings.json and fill in your database connection. 
 
 ## Guide
 In order to start server type following:
