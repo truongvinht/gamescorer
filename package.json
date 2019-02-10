@@ -7,9 +7,8 @@
     "start": "node app.js"
   },
   "author": "Truong Vinh Tran",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
-    "apidoc": "^0.17.7",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "mysql": "^2.16.0"
