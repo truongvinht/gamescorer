@@ -1,0 +1,5 @@
+{
+    "name": "Gamescorer api",
+    "version": "1.0.0",
+    "description": "API for managing player and game data"
+  }

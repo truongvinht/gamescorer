@@ -6,3 +6,5 @@ defaults/settings.json
 # NodeJS specific
 node_modules
 package-lock.json
+doc
+out
