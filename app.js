@@ -301,7 +301,7 @@ router.post('/guilds', (req, res) => {
  * @apiSuccess {String}     guild.name      Guild name
  * @apiSuccess {String}     guild.tag       Guild tag
  * 
- * @apiError GuildNotFound No match found for given guild id
+ * @apiError GuildNotFound No match found for given <code>guildId<code>
  */
 router.get("/guilds/:guildId", (req, res) => {
     let gid = req.params.guildId;
@@ -318,7 +318,26 @@ router.get("/guilds/:guildId", (req, res) => {
     });    
 });
 
-//UPDATE
+
+/**
+ * @api {put} /guilds/:guildId Update Guild
+ * @apiDescription Update existing guild data
+ * @apiName UpdateGuild
+ * @apiVersion 1.0.0
+ * @apiGroup Guild
+ * 
+ * @apiHeader {String}  name        Updated guild name
+ * @apiHeader {String}  tag         Updated guild tag
+ * 
+ * @apiParam {Number}   guildId     Guild unique id
+ * 
+ * @apiSuccess {Object}     response            Updated guild
+ * @apiSuccess {Number}     response.id         Guild unique id
+ * @apiSuccess {String}     response.name       Guild name
+ * @apiSuccess {String}     response.tag        Guild tag
+ * 
+ * @apiError GuildNotFound No match found for given guild id
+ */
 router.put("/guilds/:guildId", (req, res) => {
 
     let gid = req.params.guildId;
@@ -332,11 +351,11 @@ router.put("/guilds/:guildId", (req, res) => {
                     affectedRows: data.affectedRows
                 });
             } else {
-                res.status(404).json({
-                    message:"Guild Not found."
-                });
+                res.send(JSON.stringify({"status": 404, "error": error, "response": "GuildNotFound"})); 
             }
-        } 
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": error, "response": "GuildNotFound"})); 
+        }
     });   
 });
 
