@@ -102,7 +102,7 @@ router.post('/accounts', (req, res) => {
  * @apiVersion 1.0.0
  * @apiGroup Account
  * 
- * @apiParam {Number} accountId     Account unique id
+ * @apiParam {Number} account_id     Account unique id
  * 
  * @apiSuccess {Object}     response            Requested account object
  * @apiSuccess {Number}     response.id         Account unique identifier
@@ -115,8 +115,8 @@ router.post('/accounts', (req, res) => {
  * 
  * @apiError AccountNotFound        No match found for given account id
  */
-router.get("/accounts/:accountId", (req, res) => {
-    let aid = req.params.accountId;
+router.get("/accounts/:account_id", (req, res) => {
+    let aid = req.params.account_id;
     res.locals.connection.query(a.Account.getByIdSQL(aid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
@@ -133,7 +133,7 @@ router.get("/accounts/:accountId", (req, res) => {
 });
 
 /**
- * @api {put} /accounts/:accountId Update Account
+ * @api {put} /accounts/:account_id Update Account
  * @apiDescription Update existing account data
  * @apiName UpdateAccount
  * @apiVersion 1.0.0
@@ -146,7 +146,7 @@ router.get("/accounts/:accountId", (req, res) => {
  * @apiHeader {Date}    birthdate   Account birthdate
  * @apiHeader {Boolean} verified    Account verified status
  * 
- * @apiParam {Number}   accountId   Account unique id
+ * @apiParam {Number}   account_id   Account unique id
  * 
  * @apiSuccess {Object}     response            Updated user account
  * @apiSuccess {Number}     response.id         Account unique identifier
@@ -159,9 +159,9 @@ router.get("/accounts/:accountId", (req, res) => {
  * 
  * @apiError AccountNotFound No match found for given account id
  */
-router.put("/accounts/:accountId", (req, res) => {
+router.put("/accounts/:account_id", (req, res) => {
 
-    let aid = req.params.accountId;
+    let aid = req.params.account_id;
 
     let email = req.body.email;
     let surname = req.body.surname;
@@ -194,12 +194,12 @@ router.put("/accounts/:accountId", (req, res) => {
 
 /**
  * @api {get} /guilds Read Guilds
- * @apiDescription Get all guilds for an account
+ * @apiDescription Get all guilds for an Account
  * @apiName ReadGuilds
  * @apiVersion 1.0.0
  * @apiGroup Guild
  * 
- * @apiHeader {Number} accountId account unique id, 
+ * @apiHeader {Number} account_id Account unique id, 
  * 
  * @apiSuccess {Object[]}   response    List of matching guilds
  * 
@@ -207,14 +207,14 @@ router.put("/accounts/:accountId", (req, res) => {
  * @apiError AccountNotFound No match found for given account id
  */
 router.get('/guilds', function(req, res) {
-    let accountId = req.body.accountId;
+    let account_id = req.body.account_id;
 
-    if (accountId == undefined) {
+    if (account_id == undefined) {
         // get all guilds is not permitted
         res.send(JSON.stringify({"status": 403, "error": "accountId missing", "response": "AccoundIdMissing"})); 
     } else {
         // get all guilds for current account
-        res.locals.connection.query(gp.GuildPermission.getAllForAccountSQL(accountId), function (error, results, fields) {
+        res.locals.connection.query(gp.GuildPermission.getAllForAccountSQL(account_id), function (error, results, fields) {
             if(error){
                 res.send(JSON.stringify({"status": 404, "error": error, "response": "AccountNotFound"})); 
             } else {
@@ -236,7 +236,7 @@ router.get('/guilds', function(req, res) {
  * 
  * @apiHeader {String}      name        Guild name
  * @apiHeader {String}      tag         Guild tag
- * @apiHeader {Number}      accountId   Account unique id, 
+ * @apiHeader {Number}      account_id  Account unique id, 
  * 
  * @apiSuccess {Object}     guild                       Guild object
  * @apiSuccess {Number}     guild.id                    Guild unique identifier
@@ -254,7 +254,7 @@ router.get('/guilds', function(req, res) {
  * @apiError CreatePermissionFailed Permission creation failed
  */
 router.post('/guilds', (req, res) => {
-    let accountId = req.body.accountId;
+    let accountId = req.body.account_id;
 
     if (accountId==null) {
         // prevent create guilds without account associations
@@ -289,22 +289,22 @@ router.post('/guilds', (req, res) => {
 });
 
 /**
- * @api {get} /guilds/:guildId Read Guild
+ * @api {get} /guilds/:guild_id Read Guild
  * @apiDescription Read single guild data 
  * @apiName ReadGuild
  * @apiVersion 1.0.0
  * @apiGroup Guild
  * 
- * @apiParam {Number}       guildId         Guild unique id, 
+ * @apiParam {Number}       guild_id        Guild unique id, 
  * 
  * @apiSuccess {Object}     response        Guild object
  * @apiSuccess {Number}     response.id     Guild unique identifier
  * @apiSuccess {String}     response.name   Guild name
  * @apiSuccess {String}     response.tag    Guild tag
  * 
- * @apiError GuildNotFound No match found for given <code>guildId<code>
+ * @apiError GuildNotFound No match found for given <code>guild_id<code>
  */
-router.get("/guilds/:guildId", (req, res) => {
+router.get("/guilds/:guild_id", (req, res) => {
     let gid = req.params.guildId;
     res.locals.connection.query(g.Guild.getByIdSQL(gid), (err, data)=> {
         if(!err) {
@@ -330,7 +330,7 @@ router.get("/guilds/:guildId", (req, res) => {
  * @apiHeader {String}  name        Updated guild name
  * @apiHeader {String}  tag         Updated guild tag
  * 
- * @apiParam {Number}   guildId     Guild unique id
+ * @apiParam {Number}   guild_id    Guild unique id
  * 
  * @apiSuccess {Object}     response            Updated guild
  * @apiSuccess {Number}     response.id         Guild unique id
@@ -341,7 +341,7 @@ router.get("/guilds/:guildId", (req, res) => {
  */
 router.put("/guilds/:guildId", (req, res) => {
 
-    let gid = req.params.guildId;
+    let gid = req.params.guild_id;
     let guild = new g.Guild(req.body.name, req.body.tag);
 
     res.locals.connection.query(guild.getUpdateSQL(gid), (err, data)=> {
@@ -423,13 +423,13 @@ router.post('/players', (req, res) => {
 
 
 /**
- * @api {post} /players:playerId Read Player
+ * @api {post} /players/:player_id Read Player
  * @apiDescription Read exsting player data
  * @apiName ReadPlayer
  * @apiVersion 1.0.0
  * @apiGroup Player
  * 
- * @apiParam {Number}       playerId           Player unique id
+ * @apiParam {Number}       player_id          Player unique id
  * 
  * @apiSuccess {Object}     response           Player object
  * @apiSuccess {Number}     response.id        Player unique identifier
@@ -437,10 +437,10 @@ router.post('/players', (req, res) => {
  * @apiSuccess {String}     response.game_id   Player ingame unique identifier
  * @apiSuccess {Boolean}    response.main      Player account is main account
  * 
- * @apiError PlayerNotFound     No match found for given <code>playerId</code>
+ * @apiError PlayerNotFound     No match found for given <code>player_id</code>
  */
-router.get("/players/:playerId", (req, res) => {
-    let pid = req.params.playerId;
+router.get("/players/:player_id", (req, res) => {
+    let pid = req.params.player_id;
     res.locals.connection.query(p.Player.getByIdSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
@@ -450,29 +450,51 @@ router.get("/players/:playerId", (req, res) => {
             } else {
                 res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
             }
-        } 
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
+        }
     });    
 });
 
-//UPDATE
-router.put("/players/:playerId", (req, res) => {
+/**
+ * @api {put} /players/:player_id Update Player
+ * @apiDescription Update exsting player data
+ * @apiName UpdatePlayer
+ * @apiVersion 1.0.0
+ * @apiGroup Player
+ * 
+ * @apiHeader {String}  name        Player name
+ * @apiHeader {String}  game_id     Player ingame unique identifier
+ * @apiHeader {Boolean} main        Player account is main account
+ * @apiHeader {Number}  account_id  Connect Player with chosen account id
+ * 
+ * @apiParam {Number}       player_id          Player unique id
+ * 
+ * @apiSuccess {Object}     response           Player object
+ * @apiSuccess {Number}     response.id        Player unique identifier
+ * @apiSuccess {String}     response.name      Player name
+ * @apiSuccess {String}     response.game_id   Player ingame unique identifier
+ * @apiSuccess {Boolean}    response.main      Player account is main account
+ * 
+ * @apiError PlayerNotFound     No match found for given <code>player_id</code>
+ */
+router.put("/players/:player_id", (req, res) => {
 
-    let pid = req.params.playerId;
+    let pid = req.params.player_id;
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
 
     res.locals.connection.query(player.getUpdateSQL(pid), (err, data)=> {
         if(!err) {
             if(data && data.affectedRows > 0) {
                 res.status(200).json({
-                    message:`Player updated`,
-                    affectedRows: data.affectedRows
+                    response: data.affectedRows
                 });
             } else {
-                res.status(404).json({
-                    message:"Player Not found"
-                });
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
             }
-        } 
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
+        }
     });   
 });
 
@@ -480,22 +502,80 @@ router.put("/players/:playerId", (req, res) => {
 // GUILDLIST
 // =============================================================================
 
-// READ ALL DATA
-router.get('/guilds/:guildId/guildlist', function(req, res) {
+/**
+ * @api {get} /guilds/:guild_id/guildlist Read Guildlists
+ * @apiDescription Read all guildlist entries for target guild
+ * @apiName ReadGuildlists
+ * @apiVersion 1.0.0
+ * @apiGroup Guildlist
+ * 
+ * @apiParam {Number}       guild_id           Guild unique id
+ * 
+ * @apiSuccess {Object[]}     response         List of Guildlist
+ * 
+ * @apiError GuildlistNotLoaded     Could not load guildlist
+ */
+router.get('/guilds/:guild_id/guildlist', function(req, res) {
 
-    let gid = req.params.guildId;
+    let gid = req.params.guild_id;
 
-    res.locals.connection.query(gl.GuildList.getAllForPlayerInGuildSQL(req.body.guildId,req.body.playerId), function (error, results, fields) {
+    res.locals.connection.query(gl.Guildlist.getAllForGuild(gid), function (error, results, fields) {
         if(error){
-            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            res.send(JSON.stringify({"status": 400, "error": error, "response": "GuildlistNotLoaded"})); 
             //If there is error, we send the error in the error section with 500 status
         } else {
-            res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
-            //If there is no error, all is good and response is 200OK.
+            res.status(200).json({
+                response: results
+            });
         }
     });
 });
 
+
+/**
+ * @api {post} /guilds/:guild_id/guildlist Create Guildlist
+ * @apiDescription Create a new Guildlist entry
+ * @apiName CreateGuildlist
+ * @apiVersion 1.0.0
+ * @apiGroup Guildlist
+ * 
+ * @apiHeader {String}      player_id       Player unique identifier (player which joins guild)
+ * @apiHeader {Boolean}     active          Player activity status
+ * @apiHeader {String}      notes           Player info notes
+ * 
+ * @apiParam {Number}       guild_id        Target guild which a guildlist will be created for
+ * 
+ * @apiSuccess {Object}     response        Guildlist unique identifier
+ * 
+ * @apiError GuildlistAlreadyExist          Guildlist could not be created, because Guildlist already exist
+ * @apiError FailedCreating                 Guildlist could not be created
+ */
+router.post('/guilds/:guild_id/guildlist', function(req, res) {
+
+    res.locals.connection.query(gl.Guildlist.getGuildlist(req.params.guild_id, req.body.player_id),  function (err, data) {
+        if(err){
+            res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedCreating"})); 
+        } else {
+            //request successful
+            if (data.length > 0) {
+                res.send(JSON.stringify({"status": 403, "error": "Guildlist already exist", "response": "GuildlistAlreadyExist"})); 
+            } else {
+                let guildlist = new gl.Guildlist(req.params.guild_id, req.body.player_id, req.body.active, req.body.notes);
+                res.locals.connection.query(guildlist.getAddSQL(),  function (err, data) {
+                    if(err){
+                        res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedCreating"})); 
+                    } else {
+                        res.status(200).json({
+                            response: data.insertId
+                        });
+                    }
+                });
+            }
+        }
+    });
+
+
+});
 
 // RAWDATA
 // =============================================================================

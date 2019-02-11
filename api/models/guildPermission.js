@@ -5,7 +5,7 @@
 'user strict';
 
 let TABLE = "G_PERMISSION";
-let FOREIGN_TABLE = "GUILD"
+let FOREIGN_TABLE = "GUILD";
 
 /**
  * Guild permission for handling guild access
@@ -17,16 +17,16 @@ class GuildPermission {
     /**
      * Initalize new guild
      * @constructor 
-     * @param {number} accountId id of the linked account
-     * @param {number} guildId   id of the link guild
+     * @param {number} account_id id of the linked account
+     * @param {number} guild_id   id of the link guild
     */
-    constructor(accountId, guildId, owner) {
+    constructor(account_id, guild_id, owner) {
 
         // int 32 | Default: None
-        this.accountId = accountId;
+        this.account_id = account_id;
         
         // int 32 | Default: None
-	    this.guildId = guildId;
+	    this.guild_id = guild_id;
         
         // tinyint | Default: 0
 	    this.owner = owner;
@@ -37,7 +37,7 @@ class GuildPermission {
      * @return {string} string reprentation of the object with all attributes
      */
     toString() {
-        return `[${this.accountId}, ${this.guildId}, ${this.owner}]`;
+        return `[${this.account_id}, ${this.guild_id}, ${this.owner}]`;
     }
     
     /**
@@ -46,7 +46,7 @@ class GuildPermission {
      */
     getAddSQL() {
         let keys = `account_id, guild_id, owner`;
-        let values = `${this.accountId},${this.guildId},${this.owner}`;
+        let values = `${this.account_id},${this.guild_id},${this.owner}`;
 
         let sql = `INSERT INTO ${TABLE}(${keys}) VALUES(${values})`;
         return sql;        
