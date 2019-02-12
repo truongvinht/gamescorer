@@ -267,7 +267,7 @@ router.post('/guilds', (req, res) => {
         let guild = new g.Guild(name, tag);
 
         res.locals.connection.query(guild.getAddSQL(),  function (guildErr, guildData) {
-            if(err){
+            if(guildErr){
                 res.send(JSON.stringify({"status": 400, "error": guildErr, "response": "CreateGuildFailed"})); 
             } else {
 
@@ -503,7 +503,7 @@ router.put("/players/:player_id", (req, res) => {
 // =============================================================================
 
 /**
- * @api {get} /guilds/:guild_id/guildlist Read Guildlists
+ * @api {get} /guilds/:guild_id/guildlists Read Guildlists
  * @apiDescription Read all guildlist entries for target guild
  * @apiName ReadGuildlists
  * @apiVersion 1.0.0
@@ -515,7 +515,7 @@ router.put("/players/:player_id", (req, res) => {
  * 
  * @apiError GuildlistNotLoaded     Could not load guildlist
  */
-router.get('/guilds/:guild_id/guildlist', function(req, res) {
+router.get('/guilds/:guild_id/guildlists', function(req, res) {
 
     let gid = req.params.guild_id;
 
@@ -533,13 +533,13 @@ router.get('/guilds/:guild_id/guildlist', function(req, res) {
 
 
 /**
- * @api {post} /guilds/:guild_id/guildlist Create Guildlist
+ * @api {post} /guilds/:guild_id/guildlists Create Guildlist
  * @apiDescription Create a new Guildlist entry
  * @apiName CreateGuildlist
  * @apiVersion 1.0.0
  * @apiGroup Guildlist
  * 
- * @apiHeader {String}      player_id       Player unique identifier (player which joins guild)
+ * @apiHeader {Number}      player_id       Player unique identifier (player which joins guild)
  * @apiHeader {Boolean}     active          Player activity status
  * @apiHeader {String}      notes           Player info notes
  * 
@@ -550,7 +550,7 @@ router.get('/guilds/:guild_id/guildlist', function(req, res) {
  * @apiError GuildlistAlreadyExist          Guildlist could not be created, because Guildlist already exist
  * @apiError FailedCreating                 Guildlist could not be created
  */
-router.post('/guilds/:guild_id/guildlist', function(req, res) {
+router.post('/guilds/:guild_id/guildlists', function(req, res) {
 
     res.locals.connection.query(gl.Guildlist.getGuildlist(req.params.guild_id, req.body.player_id),  function (err, data) {
         if(err){
@@ -573,8 +573,113 @@ router.post('/guilds/:guild_id/guildlist', function(req, res) {
             }
         }
     });
+});
+
+/**
+ * @apiIgnore Not finished Method
+ * @api {post} /guilds/:guild_id/guildlists/gen Generate Guildlist objects
+ * @apiDescription Generate Guildlist objects based on matching rawdata
+ * @apiName GenerateGuildlists
+ * @apiVersion 1.0.0
+ * @apiGroup Guildlist
+ * 
+ * @apiParam {Number}       guild_id        Target guild which a guildlist will be created for
+ * 
+ * @apiSuccess {Object}     response        Guildlist unique identifier
+ * 
+ * @apiError GuildlistAlreadyExist          Guildlist could not be created, because Guildlist already exist
+ * @apiError FailedReadingRawdata           Failed reading rawdata
+ */
+router.post('/guilds/:guild_id/guildlists/gen', function(req, res) {
+    res.locals.connection.query(r.Rawdata.getAllForPlayerInGuildSQL(req.params.guild_id,null), function (error, results, fields) {
+        if(error){
+            res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedReadingRawdata"})); 
+        } else {
+
+            if (results.length > 0) {
+                // for every rawdata get guild_id and player_id which doesnt exist in guildlist
+
+                // insert new row which doesnt exist
+            } else {
+                // no results
+                res.status(200).json({
+                    response: []
+                });
+            }
+        }
+    });
+});
 
 
+/**
+ * @api {put} /guildlists/:guildlist_id Update Guildlist
+ * @apiDescription Update exsting Guildlist data
+ * @apiName UpdateGuildlist
+ * @apiVersion 1.0.0
+ * @apiGroup Guildlist
+ * 
+ * @apiHeader {Number}      player_id       Player unique identifier (player which joins guild)
+ * @apiHeader {Boolean}     active          Player activity status
+ * @apiHeader {String}      notes           Player info notes
+ * 
+ * @apiParam {Number}       guildlist_id    Guildlist unique id
+ * 
+ * @apiSuccess {Object}     response                Player object
+ * @apiSuccess {Number}     response.player_id      Player unique identifier (player which joins guild)
+ * @apiSuccess {Boolean}    response.active         Player activity status
+ * @apiSuccess {String}     response.notes          Player info notes
+ * 
+ * @apiError GuildlistNotFound     No match found for given <code>guildlist_id</code>
+ */
+router.put('/guildlists/:guildlist_id', function(req, res) {
+    let lid = req.params.guildlist_id;
+    let guildlist = new gl.Guildlist(req.body.guild_id, req.body.player_id,req.body.active,req.body.notes);
+
+    res.locals.connection.query(guildlist.getUpdateSQL(lid), (err, data)=> {
+        if(!err) {
+            if(data && data.affectedRows > 0) {
+                res.status(200).json({
+                    response: data.affectedRows
+                });
+            } else {
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "GuildlistNotFound"})); 
+            }
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "GuildlistNotFound"})); 
+        }
+    });   
+});
+
+
+
+/**
+ * @api {delete} /guildlists/:guildlist_id Delete Guildlist
+ * @apiDescription Delete Guildlist data
+ * @apiName DeleteGuildlist
+ * @apiVersion 1.0.0
+ * @apiGroup Guildlist
+ * 
+ * @apiParam {Number}       guildlist_id    Guildlist unique id
+ * 
+ * @apiSuccess {String}     response        OK message
+ * 
+ * @apiError GuildlistNotFound     No match found for given <code>guildlist_id</code>
+ */
+router.delete('/guildlists/:guildlist_id', function(req, res) {
+    let lid = req.params.guildlist_id;
+    res.locals.connection.query(gl.Guildlist.deleteByIdSQL(lid), (err, data)=> {
+        if(!err) {
+            if(data && data.affectedRows > 0) {
+                res.status(200).json({
+                    response: "OK"
+                });
+            } else {
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "GuildlistNotFound"})); 
+            }
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "GuildlistNotFound"})); 
+        }
+    });   
 });
 
 // RAWDATA

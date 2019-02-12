@@ -35,13 +35,11 @@ class Rawdata {
     }
  
     static getAllForGuildSQL(objectId) {
-        let sql = `SELECT * FROM ${TABLE} where guild_id = ${objectId}`;
-        return sql;           
+        return getAllForPlayerInGuildSQL(objectId, null);   
     }
  
     static getAllForPlayerSQL(objectId) {
-        let sql = `SELECT * FROM ${TABLE} where player_id = ${objectId}`;
-        return sql;           
+        return getAllForPlayerInGuildSQL(null, objectId);           
     }
  
     static getAllForPlayerInGuildSQL(guildId,playerId) {

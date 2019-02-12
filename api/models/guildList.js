@@ -72,7 +72,7 @@ class Guildlist {
         let sql = `UPDATE ${TABLE} SET ${param1}, ${param2}, ${param3}, ${param4} WHERE id = ${objectId}`;
         return sql;   
     }
-    
+
     /**
      * Read SQL query for getting object with given object id (Guildlist)
      * @static
