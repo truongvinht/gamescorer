@@ -117,6 +117,22 @@ class Rawdata {
             return sql; 
         }
     }
+
+    /**
+     * Query for getting all rawdata for a player and/or a guild (Rawdata)
+     * @static
+     * @param {number} guild_id  matching guild id
+     * @return {string} query for reading all {Rawdata}
+     */
+    static getScoreForGuildlistSQL(guild_id) {
+        let sql = `Select x.*, p.name FROM (
+            (SELECT l.active, l.notes, d.* FROM GUILDLIST l LEFT JOIN 
+            (SELECT DISTINCT player_id, date as 'joined_at', max(value) as value 
+            FROM ${TABLE} WHERE guild_id = ${guild_id} GROUP BY player_id) d 
+            ON l.player_id = d.player_id)) x LEFT JOIN PLAYER p ON p.id = x.player_id  
+            ORDER BY value DESC`;
+            return sql;     
+    }
 };
 
 module.exports = {

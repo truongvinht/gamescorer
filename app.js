@@ -597,7 +597,7 @@ router.post('/guilds/:guild_id/guildlists/gen', function(req, res) {
 
             if (results.length > 0) {
                 // for every rawdata get guild_id and player_id which doesnt exist in guildlist
-
+                //INSERT INTO GUILDLIST (guild_id, player_id, active) SELECT guild_id, player_id, 1 AS active FROM RAWDATA WHERE guild_id = 1 GROUP by player_id
                 // insert new row which doesnt exist
             } else {
                 // no results
@@ -775,6 +775,10 @@ router.get("/rawdatas/:rawdata_id", (req, res) => {
     }); 
 });
 
+
+// G_PERMISSION
+// =============================================================================
+
 /**
  * @api {post} /guilds/:guild_id/gpermission Create GPermission
  * @apiDescription Create GPermission for account
@@ -810,6 +814,27 @@ router.post('/guilds/:guild_id/gpermission', function(req, res) {
             });
         }
     });
+});
+
+// SCORE
+// =============================================================================
+
+
+router.get("/guilds/:guild_id/scores", (req, res) => {
+    let gid = req.params.guild_id;
+    res.locals.connection.query(r.Rawdata.getScoreForGuildlistSQL(gid), (err, data)=> {
+        if(!err) {
+            if(data && data.length > 0) {
+                res.status(200).json({
+                    response: data
+                });
+            } else {
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+            }
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+        }
+    }); 
 });
 
 // more routes for our API will happen here
