@@ -96,9 +96,8 @@ class Guildlist {
     }
  
     /**
-     * Query for getting all guilds (Guildlist)
+     * Query for getting all guildlist entries (Guildlist)
      * @static
-     * @param {number} objectId  table row item id
      * @return {string} query for reading all {Guildlist}
      */
     static getAllSQL() {

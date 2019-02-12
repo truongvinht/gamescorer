@@ -421,7 +421,6 @@ router.post('/players', (req, res) => {
     });
 });
 
-
 /**
  * @api {post} /players/:player_id Read Player
  * @apiDescription Read exsting player data
@@ -650,8 +649,6 @@ router.put('/guildlists/:guildlist_id', function(req, res) {
     });   
 });
 
-
-
 /**
  * @api {delete} /guildlists/:guildlist_id Delete Guildlist
  * @apiDescription Delete Guildlist data
@@ -685,56 +682,134 @@ router.delete('/guildlists/:guildlist_id', function(req, res) {
 // RAWDATA
 // =============================================================================
 
-// READ ALL DATA
-router.get('/rawdatas', function(req, res) {
-    res.locals.connection.query(r.Rawdata.getAllForPlayerInGuildSQL(req.body.guildId,req.body.playerId), function (error, results, fields) {
+/**
+ * @api {get} /guilds/:guild_id/rawdatas Read Rawdatas
+ * @apiDescription Read all rawdata entries for target guild
+ * @apiName ReadRawdatas
+ * @apiVersion 1.0.0
+ * @apiGroup Rawdata
+ * 
+ * @apiParam {Number}       guild_id           Guild unique id
+ * 
+ * @apiSuccess {Object[]}     response         List of Rawdata
+ * 
+ * @apiError RawdataNotLoaded     Could not load Rawdata
+ */
+router.get('/guilds/:guild_id/rawdatas', function(req, res) {
+
+    let gid = req.params.guild_id;
+
+    res.locals.connection.query(r.Rawdata.getAllForGuildSQL(gid), function (error, results, fields) {
         if(error){
-            res.send(JSON.stringify({"status": 404, "error": error, "response": null})); 
+            res.send(JSON.stringify({"status": 400, "error": error, "response": "RawdataNotLoaded"})); 
             //If there is error, we send the error in the error section with 500 status
         } else {
-            res.send(JSON.stringify({"status": 200, "error": null, "response": results}));
-            //If there is no error, all is good and response is 200OK.
-        }
-    });
-});
-
-// CREATE
-router.post('/rawdatas', (req, res) => {
-    let rawdata = new r.Rawdata(req.body.date, req.body.guildId, req.body.playerId, req.body.value);
-    res.locals.connection.query(rawdata.getAddSQL(),  function (err, data) {
-        if(err){
-            res.send(JSON.stringify({"status": 404, "error": err, "response": null})); 
-        } else {
             res.status(200).json({
-                message: "Rawdata added.",
-                rawdata_id: data.insertId
+                response: results
             });
         }
     });
 });
 
-// READ SINGLE
+/**
+ * @api {post} /guilds/:guild_id/rawdatas Create Rawdata
+ * @apiDescription Create a new Rawdata entry
+ * @apiName CreateRawdata
+ * @apiVersion 1.0.0
+ * @apiGroup Rawdata
+ * 
+ * @apiHeader {Date}        date            Recording date 
+ * @apiHeader {Number}      player_id       Scoring player
+ * @apiHeader {Number}      value           Score
+ * 
+ * @apiParam {Number}       guild_id        Player collected score for target guild
+ * 
+ * @apiSuccess {Object}     response        Rawdata unique identifier
+ * 
+ * @apiError FailedCreating                 Rawdata could not be created
+ */
+router.post('/guilds/:guild_id/rawdatas', (req, res) => {
+    let rawdata = new r.Rawdata(req.body.date, req.params.guild_id, req.body.player_id, req.body.value);
+    res.locals.connection.query(rawdata.getAddSQL(),  function (err, data) {
+        if(err){
+            res.send(JSON.stringify({"status": 404, "error": error, "response": "FailedCreating"})); 
+        } else {
+            res.status(200).json({
+                response: data.insertId
+            });
+        }
+    });
+});
 
 /**
- * @apiIgnore Not finished Method
- * @api {get} /rawdatas/:rawdataId Getting rawdata by id
+ * @api {get} /rawdatas/:rawdata_id Read Rawdata
+ * @apiDescription Read exsting Rawdata
+ * @apiName ReadRawdata
+ * @apiVersion 1.0.0
+ * @apiGroup Rawdata
+ * 
+ * @apiParam {Number}       rawdata_id         Rawdata unique id
+ * 
+ * @apiSuccess {Object}     response            Rawdata object
+ * @apiSuccess {Date}       response.date       Rawdata recording date
+ * @apiSuccess {Number}     response.player_id  Recording for target player
+ * @apiSuccess {Number}     response.guild_id   Recording for target guild
+ * @apiSuccess {Number}     response.value      Scoring
+ * 
+ * @apiError RawdataNotFound     No match found for given <code>rawdata_id</code>
  */
-router.get("/rawdatas/:rawdataId", (req, res) => {
-    let rid = req.params.rawdataId;
+router.get("/rawdatas/:rawdata_id", (req, res) => {
+    let rid = req.params.rawdata_id;
     res.locals.connection.query(r.Rawdata.getByIdSQL(rid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
-                    message:"Rawdata found",
-                    rawdata: data
+                    response: data
                 });
             } else {
-                res.status(404).json({
-                    message: "Rawdata Not found."
-                });
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
             }
-        } 
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+        }
     }); 
+});
+
+/**
+ * @api {post} /guilds/:guild_id/gpermission Create GPermission
+ * @apiDescription Create GPermission for account
+ * @apiName ReadGPermissions
+ * @apiVersion 1.0.0
+ * @apiGroup GPermission
+ * 
+ * @apiParam {Number}       guild_id           Guild unique id
+ * 
+ * @apiSuccess {Object[]}     response         List of Rawdata
+ * 
+ * @apiError PermissionAlreadyExist     Permission for account and target guild already exist
+ * @apiError FailedCreating             Permission could not be created
+ */
+router.post('/guilds/:guild_id/gpermission', function(req, res) {
+
+    let gid = req.params.guild_id;
+    let gPermission = new gp.GuildPermission(req.body.account_id, gid, req.body.owner);
+
+    res.locals.connection.query(gPermission.getAddSQL(), function (error, results, fields) {
+        if(err){
+            // permission already exist
+            if (err.code == "ER_DUP_ENTRY") {
+                // forbidden
+                res.send(JSON.stringify({"status": 403, "error": err, "response": "PermissionAlreadyExist"}));  
+            } else {
+                // all other errors
+                res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedCreating"})); 
+            }
+        } else {
+            res.status(200).json({
+                response: data.insertId
+            });
+        }
+    });
 });
 
 // more routes for our API will happen here
