@@ -819,10 +819,46 @@ router.post('/guilds/:guild_id/gpermission', function(req, res) {
 // SCORE
 // =============================================================================
 
+router.get("/guilds/:guild_id/dates", (req, res) => {
 
-router.get("/guilds/:guild_id/scores", (req, res) => {
+    let limit = req.body.limit;
+    let gid = req.params.guild_id;
+    
+    res.locals.connection.query(r.Rawdata.getRecordingDate(limit,gid), (err, data)=> {
+        if(!err) {
+            if(data && data.length > 0) {
+                res.status(200).json({
+                    response: data
+                });
+            } else {
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+            }
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+        }
+    }); 
+});
+
+router.get("/guilds/:guild_id/current_scores", (req, res) => {
     let gid = req.params.guild_id;
     res.locals.connection.query(r.Rawdata.getScoreForGuildlistSQL(gid), (err, data)=> {
+        if(!err) {
+            if(data && data.length > 0) {
+                res.status(200).json({
+                    response: data
+                });
+            } else {
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+            }
+        } else {
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+        }
+    }); 
+});
+
+router.get("/guilds/:guild_id/last_scores", (req, res) => {
+    let gid = req.params.guild_id;
+    res.locals.connection.query(r.Rawdata.getScoreForLastRecords(gid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
