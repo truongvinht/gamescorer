@@ -15,7 +15,7 @@ let FOREIGN_TABLE = "GUILD";
 class GuildPermission {
 
     /**
-     * Initalize new guild
+     * Initalize new guild permission
      * @constructor 
      * @param {number} account_id id of the linked account
      * @param {number} guild_id   id of the link guild
