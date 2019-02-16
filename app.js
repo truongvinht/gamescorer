@@ -820,6 +820,19 @@ router.post('/guilds/:guild_id/gpermission', function(req, res) {
 // SCORE
 // =============================================================================
 
+/**
+ * @api {get} /guilds/:guild_id/dates Read Score dates
+ * @apiDescription Read recording dates for scoring
+ * @apiName ReadScoreDates
+ * @apiVersion 1.0.0
+ * @apiGroup Score
+ * 
+ * @apiParam {Number}       guild_id                Guild unique id
+ * 
+ * @apiSuccess {Date}      response                Recording date
+ * 
+ * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
+ */
 router.get("/guilds/:guild_id/dates", (req, res) => {
 
     let limit = req.body.limit;
@@ -832,36 +845,37 @@ router.get("/guilds/:guild_id/dates", (req, res) => {
                     response: data
                 });
             } else {
-                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "ScoresNotFound"})); 
             }
         } else {
-            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "ScoresNotFound"})); 
         }
     }); 
 });
 
 
 /**
- * @api {get} /guilds/:guild_id/last_scores Read Scores
- * @apiDescription Read scores data from active guild members
- * @apiName ReadScore
+ * @api {get} /guilds/:guild_id/last_scores Read total Scores
+ * @apiDescription Read total scores data from active guild members
+ * @apiName ReadTotalScore
  * @apiVersion 1.0.0
  * @apiGroup Score
  * 
  * @apiParam {Number}       guild_id                Guild unique id
  * 
  * @apiSuccess {Object}     response                Score object
- * @apiSuccess {Number}     response.player_id      Player unique id
- * @apiSuccess {String}     response.name           Player name
- * @apiSuccess {Boolean}    response.main           Main account
- * @apiSuccess {Date}       response.latest_date    Last record date
- * @apiSuccess {Date}       response.prev_date      Previous record date
- * @apiSuccess {Number}     response.score          Score between last and previous record
+ * @apiSuccess {Boolean}    response.active         Active guild member
+ * @apiSuccess {String}     response.notes          Internal notes about player 
+ * @apiSuccess {Boolean}    response.player_id      Player unique id
+ * @apiSuccess {Date}       response.joined_at      First recording date
+ * @apiSuccess {Date}       response.value          Latest total recording value within guild
+ * @apiSuccess {Number}     response.name           Player name
  * 
  * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
  */
 router.get("/guilds/:guild_id/guild_scores", (req, res) => {
     let gid = req.params.guild_id;
+
     res.locals.connection.query(s.Score.getScoreForGuildlistSQL(gid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
@@ -869,18 +883,18 @@ router.get("/guilds/:guild_id/guild_scores", (req, res) => {
                     response: data
                 });
             } else {
-                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "ScoresNotFound"})); 
             }
         } else {
-            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "ScoresNotFound"})); 
         }
     }); 
 });
 
 /**
- * @api {get} /guilds/:guild_id/last_scores Read Scores
- * @apiDescription Read scores data from active guild members
- * @apiName ReadScore
+ * @api {get} /guilds/:guild_id/last_scores Read recent Scores
+ * @apiDescription Read recent scores data from active guild members
+ * @apiName ReadRecentScore
  * @apiVersion 1.0.0
  * @apiGroup Score
  * 

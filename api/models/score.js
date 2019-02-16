@@ -73,7 +73,7 @@ class Score {
      */
     static getRecordingDate(limit, guild_id = null) {
 
-        var guildSubquery = 'where guild_id = 1 ';
+        var guildSubquery = `where guild_id = ${guild_id} `;
         if (guild_id == null) {
             guildSubquery = '';
         }
