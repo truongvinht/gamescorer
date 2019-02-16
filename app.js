@@ -16,6 +16,7 @@ const g = require('./api/models/guild');
 const gp = require('./api/models/guildPermission');
 const gl = require('./api/models/guildList');
 const r = require('./api/models/rawdata');
+const s = require('./api/models/score');
 
 
 // configure app to use bodyParser()
@@ -823,8 +824,8 @@ router.get("/guilds/:guild_id/dates", (req, res) => {
 
     let limit = req.body.limit;
     let gid = req.params.guild_id;
-    
-    res.locals.connection.query(r.Rawdata.getRecordingDate(limit,gid), (err, data)=> {
+
+    res.locals.connection.query(s.Score.getRecordingDate(limit,gid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
@@ -839,9 +840,29 @@ router.get("/guilds/:guild_id/dates", (req, res) => {
     }); 
 });
 
-router.get("/guilds/:guild_id/current_scores", (req, res) => {
+
+/**
+ * @api {get} /guilds/:guild_id/last_scores Read Scores
+ * @apiDescription Read scores data from active guild members
+ * @apiName ReadScore
+ * @apiVersion 1.0.0
+ * @apiGroup Score
+ * 
+ * @apiParam {Number}       guild_id                Guild unique id
+ * 
+ * @apiSuccess {Object}     response                Score object
+ * @apiSuccess {Number}     response.player_id      Player unique id
+ * @apiSuccess {String}     response.name           Player name
+ * @apiSuccess {Boolean}    response.main           Main account
+ * @apiSuccess {Date}       response.latest_date    Last record date
+ * @apiSuccess {Date}       response.prev_date      Previous record date
+ * @apiSuccess {Number}     response.score          Score between last and previous record
+ * 
+ * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
+ */
+router.get("/guilds/:guild_id/guild_scores", (req, res) => {
     let gid = req.params.guild_id;
-    res.locals.connection.query(r.Rawdata.getScoreForGuildlistSQL(gid), (err, data)=> {
+    res.locals.connection.query(s.Score.getScoreForGuildlistSQL(gid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
@@ -856,19 +877,38 @@ router.get("/guilds/:guild_id/current_scores", (req, res) => {
     }); 
 });
 
+/**
+ * @api {get} /guilds/:guild_id/last_scores Read Scores
+ * @apiDescription Read scores data from active guild members
+ * @apiName ReadScore
+ * @apiVersion 1.0.0
+ * @apiGroup Score
+ * 
+ * @apiParam {Number}       guild_id                Guild unique id
+ * 
+ * @apiSuccess {Object}     response                Score object
+ * @apiSuccess {Number}     response.player_id      Player unique id
+ * @apiSuccess {String}     response.name           Player name
+ * @apiSuccess {Boolean}    response.main           Main account
+ * @apiSuccess {Date}       response.latest_date    Last record date
+ * @apiSuccess {Date}       response.prev_date      Previous record date
+ * @apiSuccess {Number}     response.score          Score between last and previous record
+ * 
+ * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
+ */
 router.get("/guilds/:guild_id/last_scores", (req, res) => {
     let gid = req.params.guild_id;
-    res.locals.connection.query(r.Rawdata.getScoreForLastRecords(gid), (err, data)=> {
+    res.locals.connection.query(s.Score.getScoreForLastRecords(gid), (err, data)=> {
         if(!err) {
             if(data && data.length > 0) {
                 res.status(200).json({
                     response: data
                 });
             } else {
-                res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+                res.send(JSON.stringify({"status": 404, "error": err, "response": "ScoresNotFound"})); 
             }
         } else {
-            res.send(JSON.stringify({"status": 404, "error": err, "response": "RawdataNotFound"})); 
+            res.send(JSON.stringify({"status": 404, "error": err, "response": "ScoresNotFound"})); 
         }
     }); 
 });
