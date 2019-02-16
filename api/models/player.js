@@ -77,6 +77,17 @@ class Player {
         let sql = `SELECT * FROM ${TABLE} WHERE id = ${objectId}`;
         return sql;           
     }
+    
+    /**
+     * Read SQL query for getting player with ingame id (Player)
+     * @static
+     * @param {number} objectId  in game uuid
+     * @return {string} query for reading {Player}
+     */
+    static getByInGameIdSQL(objectId) {
+        let sql = `SELECT * FROM ${TABLE} WHERE game_id = ${objectId}`;
+        return sql;           
+    }
  
     /**
      * Delete SQL query for target object (Player)

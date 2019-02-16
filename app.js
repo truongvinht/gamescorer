@@ -42,6 +42,34 @@ app.use(function(req, res, next){
 	next();
 });
 
+/**
+ * Check whether request is authorized (tmp workaround using tokens)
+ * @param {*} req request
+ * @param {*} res  ressource 
+ * @param {*} next next callback
+ */
+function isAuthenticated(req, res, next) {
+    // do any checks you want to in here
+  
+    // CHECK THE USER STORED IN SESSION FOR A CUSTOM VARIABLE
+    // you can do this however you want with whatever variables you set up
+    // if (req.user.authenticated)
+
+    let token = process.env.TOKEN || "";
+
+    // ignore auth check
+    if (token == "") {
+        return next();
+    }
+
+    // same token
+    if (req.body.token == token)
+         return next();
+
+    // IF A USER ISN'T LOGGED IN, THEN REDIRECT THEM SOMEWHERE
+    //res.redirect('/');
+    res.send(JSON.stringify({"status": 401, "response": "UserUnauthorized"}));  
+}
 
 // ACCOUNT
 // =============================================================================
@@ -62,10 +90,11 @@ app.use(function(req, res, next){
  * 
  * @apiSuccess {String} response    Created Account id
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError AccountAlreadyExist    Account could not be created, because email already exist
  * @apiError FailedCreating         Account could not be created
  */
-router.post('/accounts', (req, res) => {
+router.post('/accounts',isAuthenticated, (req, res) => {
 
     //input
     let email = req.body.email;
@@ -114,9 +143,10 @@ router.post('/accounts', (req, res) => {
  * @apiSuccess {Date}       response.birthdate  Account birthdate
  * @apiSuccess {Boolean}    response.verified   Account verified status
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError AccountNotFound        No match found for given account id
  */
-router.get("/accounts/:account_id", (req, res) => {
+router.get("/accounts/:account_id",isAuthenticated, (req, res) => {
     let aid = req.params.account_id;
     res.locals.connection.query(a.Account.getByIdSQL(aid), (err, data)=> {
         if(!err) {
@@ -158,9 +188,10 @@ router.get("/accounts/:account_id", (req, res) => {
  * @apiSuccess {Date}       response.birthdate  Account birthdate
  * @apiSuccess {Boolean}    response.verified   Account verified status
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError AccountNotFound No match found for given account id
  */
-router.put("/accounts/:account_id", (req, res) => {
+router.put("/accounts/:account_id",isAuthenticated, (req, res) => {
 
     let aid = req.params.account_id;
 
@@ -204,10 +235,11 @@ router.put("/accounts/:account_id", (req, res) => {
  * 
  * @apiSuccess {Object[]}   response    List of matching guilds
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError AccoundIdMissing Account id is mandatory for request
  * @apiError AccountNotFound No match found for given account id
  */
-router.get('/guilds', function(req, res) {
+router.get('/guilds',isAuthenticated, function(req, res) {
     let account_id = req.body.account_id;
 
     if (account_id == undefined) {
@@ -250,11 +282,12 @@ router.get('/guilds', function(req, res) {
  * @apiSuccess {Number}     guildPermission.account_id  Foreign key to account
  * @apiSuccess {Boolean}    guildPermission.owner       Flag for ownership of guild
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError AccoundIdMissing Account id is mandatory for request
  * @apiError CreateGuildFailed Guild creation failed
  * @apiError CreatePermissionFailed Permission creation failed
  */
-router.post('/guilds', (req, res) => {
+router.post('/guilds',isAuthenticated, (req, res) => {
     let accountId = req.body.account_id;
 
     if (accountId==null) {
@@ -303,9 +336,10 @@ router.post('/guilds', (req, res) => {
  * @apiSuccess {String}     response.name   Guild name
  * @apiSuccess {String}     response.tag    Guild tag
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildNotFound No match found for given <code>guild_id<code>
  */
-router.get("/guilds/:guild_id", (req, res) => {
+router.get("/guilds/:guild_id",isAuthenticated, (req, res) => {
     let gid = req.params.guildId;
     res.locals.connection.query(g.Guild.getByIdSQL(gid), (err, data)=> {
         if(!err) {
@@ -338,9 +372,10 @@ router.get("/guilds/:guild_id", (req, res) => {
  * @apiSuccess {String}     response.name       Guild name
  * @apiSuccess {String}     response.tag        Guild tag
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildNotFound No match found for given guild id
  */
-router.put("/guilds/:guildId", (req, res) => {
+router.put("/guilds/:guildId",isAuthenticated, (req, res) => {
 
     let gid = req.params.guild_id;
     let guild = new g.Guild(req.body.name, req.body.tag);
@@ -373,9 +408,10 @@ router.put("/guilds/:guildId", (req, res) => {
  * 
  * @apiSuccess {Object[]}   response    List of all players
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError CantGetPlayers Could not get any players
  */
-router.get('/players', function(req, res) {
+router.get('/players',isAuthenticated, function(req, res) {
     res.locals.connection.query(p.Player.getAllSQL(), function (error, results, fields) {
         if(error){
             res.send(JSON.stringify({"status": 400, "error": error, "response": "CantGetPlayers"})); 
@@ -402,10 +438,11 @@ router.get('/players', function(req, res) {
  * 
  * @apiSuccess {Number} response    Created Player id
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError PlayerAlreadyExist     Player could not be created, because name already exist
  * @apiError FailedCreating         Player could not be created
  */
-router.post('/players', (req, res) => {
+router.post('/players',isAuthenticated, (req, res) => {
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
     res.locals.connection.query(player.getAddSQL(),  function (err, data) {
         if(err){
@@ -429,7 +466,8 @@ router.post('/players', (req, res) => {
  * @apiVersion 1.0.0
  * @apiGroup Player
  * 
- * @apiParam {Number}       player_id          Player unique id
+ * @apiParam {Number}       player_id          Player unique id / Player ingame uuid
+ * @apiParam {Number}       isUuid             activates uuid search instead of player id search (optional)
  * 
  * @apiSuccess {Object}     response           Player object
  * @apiSuccess {Number}     response.id        Player unique identifier
@@ -437,23 +475,48 @@ router.post('/players', (req, res) => {
  * @apiSuccess {String}     response.game_id   Player ingame unique identifier
  * @apiSuccess {Boolean}    response.main      Player account is main account
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError PlayerNotFound     No match found for given <code>player_id</code>
  */
-router.get("/players/:player_id", (req, res) => {
+router.get("/players/:player_id",isAuthenticated, (req, res) => {
     let pid = req.params.player_id;
-    res.locals.connection.query(p.Player.getByIdSQL(pid), (err, data)=> {
-        if(!err) {
-            if(data && data.length > 0) {
-                res.status(200).json({
-                    player: data
-                });
+
+    // check uuid flag
+    if (req.body.hasOwnProperty('isUuid')) {
+        if (isNaN(req.body.isUuid) && req.body.isUuid == 1) {
+            
+            res.locals.connection.query(p.Player.getByInGameIdSQL(pid), (err, data)=> {
+                if(!err) {
+                    if(data && data.length > 0) {
+                        res.status(200).json({
+                            player: data
+                        });
+                    } else {
+                        res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
+                    }
+                } else {
+                    res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
+                }
+            });   
+
+            return;
+        }
+    } else {
+        res.locals.connection.query(p.Player.getByIdSQL(pid), (err, data)=> {
+            if(!err) {
+                if(data && data.length > 0) {
+                    res.status(200).json({
+                        player: data
+                    });
+                } else {
+                    res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
+                }
             } else {
                 res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
             }
-        } else {
-            res.send(JSON.stringify({"status": 404, "error": err, "response": "PlayerNotFound"})); 
-        }
-    });    
+        });   
+    }
+ 
 });
 
 /**
@@ -476,9 +539,10 @@ router.get("/players/:player_id", (req, res) => {
  * @apiSuccess {String}     response.game_id   Player ingame unique identifier
  * @apiSuccess {Boolean}    response.main      Player account is main account
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError PlayerNotFound     No match found for given <code>player_id</code>
  */
-router.put("/players/:player_id", (req, res) => {
+router.put("/players/:player_id",isAuthenticated, (req, res) => {
 
     let pid = req.params.player_id;
     let player = new p.Player(req.body.name, req.body.game_id,req.body.main);
@@ -513,9 +577,10 @@ router.put("/players/:player_id", (req, res) => {
  * 
  * @apiSuccess {Object[]}     response         List of Guildlist
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildlistNotLoaded     Could not load guildlist
  */
-router.get('/guilds/:guild_id/guildlists', function(req, res) {
+router.get('/guilds/:guild_id/guildlists', isAuthenticated,function(req, res) {
 
     let gid = req.params.guild_id;
 
@@ -547,10 +612,11 @@ router.get('/guilds/:guild_id/guildlists', function(req, res) {
  * 
  * @apiSuccess {Object}     response        Guildlist unique identifier
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildlistAlreadyExist          Guildlist could not be created, because Guildlist already exist
  * @apiError FailedCreating                 Guildlist could not be created
  */
-router.post('/guilds/:guild_id/guildlists', function(req, res) {
+router.post('/guilds/:guild_id/guildlists',isAuthenticated, function(req, res) {
 
     res.locals.connection.query(gl.Guildlist.getGuildlist(req.params.guild_id, req.body.player_id),  function (err, data) {
         if(err){
@@ -587,10 +653,11 @@ router.post('/guilds/:guild_id/guildlists', function(req, res) {
  * 
  * @apiSuccess {Object}     response        Guildlist unique identifier
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildlistAlreadyExist          Guildlist could not be created, because Guildlist already exist
  * @apiError FailedReadingRawdata           Failed reading rawdata
  */
-router.post('/guilds/:guild_id/guildlists/gen', function(req, res) {
+router.post('/guilds/:guild_id/guildlists/gen',isAuthenticated, function(req, res) {
     res.locals.connection.query(r.Rawdata.getAllForPlayerInGuildSQL(req.params.guild_id,null), function (error, results, fields) {
         if(error){
             res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedReadingRawdata"})); 
@@ -629,9 +696,10 @@ router.post('/guilds/:guild_id/guildlists/gen', function(req, res) {
  * @apiSuccess {Boolean}    response.active         Player activity status
  * @apiSuccess {String}     response.notes          Player info notes
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildlistNotFound     No match found for given <code>guildlist_id</code>
  */
-router.put('/guildlists/:guildlist_id', function(req, res) {
+router.put('/guildlists/:guildlist_id',isAuthenticated, function(req, res) {
     let lid = req.params.guildlist_id;
     let guildlist = new gl.Guildlist(req.body.guild_id, req.body.player_id,req.body.active,req.body.notes);
 
@@ -661,9 +729,10 @@ router.put('/guildlists/:guildlist_id', function(req, res) {
  * 
  * @apiSuccess {String}     response        OK message
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError GuildlistNotFound     No match found for given <code>guildlist_id</code>
  */
-router.delete('/guildlists/:guildlist_id', function(req, res) {
+router.delete('/guildlists/:guildlist_id',isAuthenticated, function(req, res) {
     let lid = req.params.guildlist_id;
     res.locals.connection.query(gl.Guildlist.deleteByIdSQL(lid), (err, data)=> {
         if(!err) {
@@ -694,9 +763,10 @@ router.delete('/guildlists/:guildlist_id', function(req, res) {
  * 
  * @apiSuccess {Object[]}     response         List of Rawdata
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError RawdataNotLoaded     Could not load Rawdata
  */
-router.get('/guilds/:guild_id/rawdatas', function(req, res) {
+router.get('/guilds/:guild_id/rawdatas',isAuthenticated, function(req, res) {
 
     let gid = req.params.guild_id;
 
@@ -727,9 +797,10 @@ router.get('/guilds/:guild_id/rawdatas', function(req, res) {
  * 
  * @apiSuccess {Object}     response        Rawdata unique identifier
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError FailedCreating                 Rawdata could not be created
  */
-router.post('/guilds/:guild_id/rawdatas', (req, res) => {
+router.post('/guilds/:guild_id/rawdatas',isAuthenticated, (req, res) => {
     let rawdata = new r.Rawdata(req.body.date, req.params.guild_id, req.body.player_id, req.body.value);
     res.locals.connection.query(rawdata.getAddSQL(),  function (err, data) {
         if(err){
@@ -757,9 +828,10 @@ router.post('/guilds/:guild_id/rawdatas', (req, res) => {
  * @apiSuccess {Number}     response.guild_id   Recording for target guild
  * @apiSuccess {Number}     response.value      Scoring
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError RawdataNotFound     No match found for given <code>rawdata_id</code>
  */
-router.get("/rawdatas/:rawdata_id", (req, res) => {
+router.get("/rawdatas/:rawdata_id",isAuthenticated, (req, res) => {
     let rid = req.params.rawdata_id;
     res.locals.connection.query(r.Rawdata.getByIdSQL(rid), (err, data)=> {
         if(!err) {
@@ -791,10 +863,11 @@ router.get("/rawdatas/:rawdata_id", (req, res) => {
  * 
  * @apiSuccess {Object[]}     response         List of Rawdata
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError PermissionAlreadyExist     Permission for account and target guild already exist
  * @apiError FailedCreating             Permission could not be created
  */
-router.post('/guilds/:guild_id/gpermission', function(req, res) {
+router.post('/guilds/:guild_id/gpermission',isAuthenticated, function(req, res) {
 
     let gid = req.params.guild_id;
     let gPermission = new gp.GuildPermission(req.body.account_id, gid, req.body.owner);
@@ -831,9 +904,10 @@ router.post('/guilds/:guild_id/gpermission', function(req, res) {
  * 
  * @apiSuccess {Date}      response                Recording date
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
  */
-router.get("/guilds/:guild_id/dates", (req, res) => {
+router.get("/guilds/:guild_id/dates",isAuthenticated, (req, res) => {
 
     let limit = req.body.limit;
     let gid = req.params.guild_id;
@@ -871,9 +945,10 @@ router.get("/guilds/:guild_id/dates", (req, res) => {
  * @apiSuccess {Date}       response.value          Latest total recording value within guild
  * @apiSuccess {Number}     response.name           Player name
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
  */
-router.get("/guilds/:guild_id/guild_scores", (req, res) => {
+router.get("/guilds/:guild_id/guild_scores",isAuthenticated, (req, res) => {
     let gid = req.params.guild_id;
 
     res.locals.connection.query(s.Score.getScoreForGuildlistSQL(gid), (err, data)=> {
@@ -908,9 +983,10 @@ router.get("/guilds/:guild_id/guild_scores", (req, res) => {
  * @apiSuccess {Date}       response.prev_date      Previous record date
  * @apiSuccess {Number}     response.score          Score between last and previous record
  * 
+ * @apiError UserUnauthorized       Authorization failed, please try again
  * @apiError ScoresNotFound     No match found for given <code>guild_id</code>
  */
-router.get("/guilds/:guild_id/last_scores", (req, res) => {
+router.get("/guilds/:guild_id/last_scores",isAuthenticated, (req, res) => {
     let gid = req.params.guild_id;
     res.locals.connection.query(s.Score.getScoreForLastRecords(gid), (err, data)=> {
         if(!err) {

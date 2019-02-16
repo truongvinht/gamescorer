@@ -85,6 +85,19 @@ class Score {
             return `SELECT date FROM RAWDATA ${guildSubquery}GROUP BY date DESC LIMIT ${limit}`
         }
     }
+
+    static getPlayerHistory(guild_id, player_id) {
+        return `SELECT p.id as 'player_id', p.name, data.guild_id, data.date, data.value 
+        FROM ${FOREIGN_TABLE_PLAYER} p, (
+            SELECT r.*, l.active 
+            FROM ${FOREIGN_TABLE_GUILDLIST} l 
+            LEFT JOIN ${FOREIGN_TABLE_RAWDATA} r 
+            ON l.guild_id = r.guild_id 
+            AND l.player_id = r.player_id ) data 
+        WHERE p.id = data.player_id
+        AND p.id = ${player_id}
+        AND data.guild_id = ${guild_id}`;
+    }
 };
 
 module.exports = {
