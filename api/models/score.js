@@ -64,6 +64,31 @@ class Score {
         return sql;
     }
 
+
+    /**
+     * Query for getting score data between dates
+     * @static
+     * @param {number} guild_id  dates only restricted to guild id
+     * @param {date} from_date  from date for score for bottom limit
+     * @param {date} to_date  to date for score for upper limit
+     * @return {string} query for reading score data in guild which match from date and to date 
+     */
+    static getScoreForDate(guild_id, from_date, to_date) {
+        let sql = `
+            SELECT pl.name, data.* 
+            FROM PLAYER pl JOIN (
+                SELECT g1.player_id, g1.date as 'from_date',  g1.value as 'from_value', g2.date as 'to_date', g2.value as 'to_value', g2.value - g1.value as 'score'  
+                FROM GUILDLIST_DATA g1 
+                JOIN GUILDLIST_DATA g2 
+                ON g1.player_id = g2.player_id 
+                WHERE g1.date = '${from_date}'
+                AND g2.date = '${to_date}'  
+                AND g1.guild_id = ${guild_id}) data 
+            ON pl.id = data.player_id 
+            ORDER BY score DESC`;
+            return sql;
+    }
+
     /**
      * Query for getting recorded dates 
      * @static
