@@ -27,10 +27,10 @@ const getVersion = () => {
  * Database connection data: host, user, password, database
  */
 const getDbSettings = () => {
-    return {host:botSettings.host,
-            user:botSettings.user,
-            password: botSettings.password,
-            database: botSettings.database};
+    return {host: process.env.DB_HOST || botSettings.host,
+            user: process.env.DB_USER || botSettings.user,
+            password: process.env.DB_PASSWORD || botSettings.password,
+            database: process.env.DB_BASE || botSettings.database};
 }
 
 // export
