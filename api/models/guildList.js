@@ -114,7 +114,7 @@ class Guildlist {
      */
     static getAllForGuild(objectId) {
         let sql = `SELECT ${TABLE}.*, p.name, p.game_id, p.main FROM ${TABLE} LEFT JOIN ${FOREIGN_TABLE} p ON p.id = player_id where guild_id = ${objectId}`;
-        return sql;           
+        return sql;
     }
  
     /**
