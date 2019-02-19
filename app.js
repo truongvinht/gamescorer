@@ -642,8 +642,7 @@ router.post('/guilds/:guild_id/guildlists',isAuthenticated, function(req, res) {
 });
 
 /**
- * @apiIgnore Not finished Method
- * @api {post} /guilds/:guild_id/guildlists/gen Generate Guildlist objects
+ * @api {post} /guilds/:guild_id/guildlists/generate Generate Guildlists
  * @apiDescription Generate Guildlist objects based on matching rawdata
  * @apiName GenerateGuildlists
  * @apiVersion 1.0.0
@@ -651,28 +650,20 @@ router.post('/guilds/:guild_id/guildlists',isAuthenticated, function(req, res) {
  * 
  * @apiParam {Number}       guild_id        Target guild which a guildlist will be created for
  * 
- * @apiSuccess {Object}     response        Guildlist unique identifier
+ * @apiSuccess {Object}     response        Guildlist entries
  * 
  * @apiError UserUnauthorized       Authorization failed, please try again
- * @apiError GuildlistAlreadyExist          Guildlist could not be created, because Guildlist already exist
- * @apiError FailedReadingRawdata           Failed reading rawdata
+ * @apiError FailedCreating                 Failed inserting  guildlists
  */
-router.post('/guilds/:guild_id/guildlists/gen',isAuthenticated, function(req, res) {
-    res.locals.connection.query(r.Rawdata.getAllForPlayerInGuildSQL(req.params.guild_id,null), function (error, results, fields) {
-        if(error){
-            res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedReadingRawdata"})); 
-        } else {
+router.post('/guilds/:guild_id/guildlists/generate',isAuthenticated, function(req, res) {
 
-            if (results.length > 0) {
-                // for every rawdata get guild_id and player_id which doesnt exist in guildlist
-                //INSERT INTO GUILDLIST (guild_id, player_id, active) SELECT guild_id, player_id, 1 AS active FROM RAWDATA WHERE guild_id = 1 GROUP by player_id
-                // insert new row which doesnt exist
-            } else {
-                // no results
-                res.status(200).json({
-                    response: []
-                });
-            }
+    res.locals.connection.query(gl.Guildlist.autoGenerateGuildList(req.params.guild_id),  function (err, data) {
+        if(err){
+            res.send(JSON.stringify({"status": 405, "error": err, "response": "FailedCreating"})); 
+        } else {
+            res.status(200).json({
+                response: data
+            });
         }
     });
 });

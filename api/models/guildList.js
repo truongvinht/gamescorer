@@ -6,6 +6,7 @@
 
 let TABLE = "GUILDLIST";
 let FOREIGN_TABLE = "PLAYER";
+let FOREIGN_TABLE_RAWDATA = "RAWDATA";
 
 /**
  * Guildlist for displaying members within guild (active and inactive).
@@ -128,7 +129,17 @@ class Guildlist {
         return sql;           
     }
 
-
+    /**
+     * Query for inserting new guildlist based on existing rawdata for a target guild
+     * @static
+     * @param {number} guild_id  Guild unique identifier
+     * @return {string} query for inserting all missing rawdata entries
+     */
+    static autoGenerateGuildList(guild_id) {
+        return `
+        INSERT INTO ${TABLE} (guild_id, player_id, active) SELECT guild_id, player_id, 1 AS active 
+        FROM ${FOREIGN_TABLE_RAWDATA} WHERE guild_id = ${guild_id} GROUP by player_id`;
+    }
 };
 
 module.exports = {

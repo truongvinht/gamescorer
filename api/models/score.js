@@ -77,7 +77,11 @@ class Score {
         let sql = `
             SELECT pl.name, data.* 
             FROM PLAYER pl JOIN (
-                SELECT g1.player_id, g1.date as 'from_date',  g1.value as 'from_value', g2.date as 'to_date', g2.value as 'to_value', g2.value - g1.value as 'score'  
+                SELECT g1.player_id, g1.date as 'from_date',  
+                    g1.value as 'from_value', g2.date as 'to_date', 
+                    g2.value as 'to_value', 
+                    g2.value - g1.value as 'score', 
+                    TIMESTAMPDIFF(day, g1.date, g2.date)
                 FROM GUILDLIST_DATA g1 
                 JOIN GUILDLIST_DATA g2 
                 ON g1.player_id = g2.player_id 
